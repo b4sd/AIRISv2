@@ -37,14 +37,14 @@ The path split into two: one led to the safety of the village, the other into th
   ];
 
   /// Get a single book with full content for reader screen
-  Future<Book> getBookForReader(String bookId) async {
+  Future<BookModel> getBookForReader(String bookId) async {
     // Simulate network delay
     await Future.delayed(Duration(milliseconds: 500));
 
     final random = Random();
     final metadata = _bookMetadata[random.nextInt(_bookMetadata.length)];
 
-    return Book(
+    return BookModel(
       bookId: bookId,
       title: metadata['title']!,
       author: metadata['author']!,
@@ -56,12 +56,12 @@ The path split into two: one led to the safety of the village, the other into th
   }
 
   /// Get list of books with metadata only (for home screen)
-  Future<List<Book>> getBookList() async {
+  Future<List<BookModel>> getBookList() async {
     // Simulate network delay
     await Future.delayed(Duration(milliseconds: 300));
 
     return _bookMetadata.map((metadata) {
-      return Book.fromMetadata({
+      return BookModel.fromMetadata({
         'book_id': 'book_${metadata['title']!.hashCode}',
         'title': metadata['title']!,
         'author': metadata['author']!,
@@ -73,11 +73,11 @@ The path split into two: one led to the safety of the village, the other into th
   }
 
   /// Get a random book with content for testing
-  Future<Book> getRandomBook() async {
+  Future<BookModel> getRandomBook() async {
     final random = Random();
     final metadata = _bookMetadata[random.nextInt(_bookMetadata.length)];
 
-    return Book(
+    return BookModel(
       bookId: 'book_${metadata['title']!.hashCode}',
       title: metadata['title']!,
       author: metadata['author']!,

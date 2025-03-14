@@ -13,7 +13,7 @@ class ReaderScreen extends StatefulWidget {
 }
 
 class _ReaderScreenState extends State<ReaderScreen> {
-  late Future<Book> _bookFuture;
+  late Future<BookModel> _bookFuture;
   final ReaderRepository _repository = ReaderRepository();
   int _currentChapter = 0;
 
@@ -27,7 +27,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Book Reader'), elevation: 0),
-      body: FutureBuilder<Book>(
+      body: FutureBuilder<BookModel>(
         future: _bookFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -47,7 +47,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     );
   }
 
-  Widget _buildReaderContent(Book book) {
+  Widget _buildReaderContent(BookModel book) {
     return Column(
       children: [
         // Book Header

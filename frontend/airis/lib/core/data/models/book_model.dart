@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-class Book {
+class BookModel {
   final String bookId;
   final String title;
   final String author;
@@ -9,7 +9,7 @@ class Book {
   final int totalChapters;
   final List<String>? content; // Optional, only loaded in reader
 
-  Book({
+  BookModel({
     required this.bookId,
     required this.title,
     required this.author,
@@ -19,9 +19,9 @@ class Book {
     this.content, // Nullable because home doesn't need it
   });
 
-  /// Convert Firestore JSON to Book object
-  factory Book.fromJson(Map<String, dynamic> json) {
-    return Book(
+  /// Convert Firestore JSON to BookModel object
+  factory BookModel.fromJson(Map<String, dynamic> json) {
+    return BookModel(
       bookId: json['book_id'] as String,
       title: json['title'] as String,
       author: json['author'] as String,
@@ -33,8 +33,8 @@ class Book {
   }
 
   /// Convert Firestore JSON to only metadata (used in Home)
-  factory Book.fromMetadata(Map<String, dynamic> json) {
-    return Book(
+  factory BookModel.fromMetadata(Map<String, dynamic> json) {
+    return BookModel(
       bookId: json['book_id'] as String,
       title: json['title'] as String,
       author: json['author'] as String,
@@ -45,7 +45,7 @@ class Book {
     );
   }
 
-  /// Convert Book object to JSON (for saving to Firestore)
+  /// Convert BookModel object to JSON (for saving to Firestore)
   Map<String, dynamic> toJson() {
     return {
       'book_id': bookId,

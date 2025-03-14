@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import '../widgets/book_card.dart';
 import '../widgets/search_bar.dart';
 import '../../data/repositories/home_repository.dart';
-import '../../data/models/book_model.dart';
-import '../../../reader/presentation/screen/reader_screen.dart';
 import '../../../../core/data/models/book_model.dart';
-import '../../../reader/data/repositories/reader_repository.dart';
+import '../../../reader/presentation/screen/reader_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,8 +13,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final ReaderRepository _repository = ReaderRepository();
-  List<Book> books = [];
+  final HomeRepository _repository = HomeRepository();
+  List<BookModel> books = [];
   bool isSearching = false;
 
   @override
@@ -26,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _fetchBooks() async {
-    final results = await _repository.getBookList();
+    final results = await _repository.getRecommendations();
     setState(() => books = results);
   }
 
@@ -35,9 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _fetchBooks();
       setState(() => isSearching = false);
     } else {
-      // For this example, we'll filter locally since we have dummy data
-      // In a real app, you might want to add a search method to the repository
-      final allBooks = await _repository.getBookList();
+      final allBooks = await _repository.getRecommendations();
       final results =
           allBooks
               .where(
@@ -53,20 +49,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _openReaderScreen(String bookId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ReaderScreen(bookId: bookId)),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Book App")),
       body: Column(
         children: [
-          Padding(padding: const EdgeInsets.all(8.0), child: _buildSearchBar()),
+          BookSearchBar(onSearch: _onSearch),
           Expanded(
             child:
                 books.isEmpty
@@ -74,49 +63,23 @@ class _HomeScreenState extends State<HomeScreen> {
                     : ListView.builder(
                       itemCount: books.length,
                       itemBuilder: (context, index) {
-                        return _buildBookCard(books[index]);
+                        return BookCard(
+                          book: books[index],
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => ReaderScreen(
+                                      bookId: books[index].bookId,
+                                    ),
+                              ),
+                            );
+                          },
+                        );
                       },
                     ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return TextField(
-      onChanged: _onSearch,
-      decoration: InputDecoration(
-        hintText: 'Search books...',
-        prefixIcon: const Icon(Icons.search),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        filled: true,
-        fillColor: Colors.grey[200],
-      ),
-    );
-  }
-
-  Widget _buildBookCard(Book book) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        leading:
-            book.coverUrl.isNotEmpty
-                ? Image.network(
-                  book.coverUrl,
-                  width: 50,
-                  height: 75,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) => const Icon(Icons.book),
-                )
-                : const Icon(Icons.book, size: 50),
-        title: Text(
-          book.title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text('by ${book.author} • ${book.totalChapters} chapters'),
-        onTap: () => _openReaderScreen(book.bookId),
       ),
     );
   }
