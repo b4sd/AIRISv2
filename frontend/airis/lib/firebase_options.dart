@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart'
 ///   options: DefaultFirebaseOptions.currentPlatform,
 /// );
 /// ```
+
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -61,4 +62,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'airis-2a337.firebasestorage.app',
     measurementId: 'G-YCB0EJDF8V',
   );
+
 }
