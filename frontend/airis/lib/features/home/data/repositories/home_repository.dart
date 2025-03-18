@@ -1,49 +1,46 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/data/models/book_model.dart';
 
-// List of dummy book titles and authors
-final List<Map<String, String>> _bookMetadata = [
-  {
-    'title': 'Whispers of the Forest',
-    'author': 'Elara Stone',
-    'language': 'English',
-    'coverUrl': 'https://example.com/covers/forest.jpg',
-  },
-  {
-    'title': 'Shadows of Time',
-    'author': 'Kael Draven',
-    'language': 'English',
-    'coverUrl': 'https://example.com/covers/shadows.jpg',
-  },
-  {
-    'title': 'The Lost Kingdom',
-    'author': 'Mira Vale',
-    'language': 'English',
-    'coverUrl': 'https://example.com/covers/kingdom.jpg',
-  },
-];
-
 class HomeRepository {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  /// Fetch recommended books (metadata only)
   Future<List<BookModel>> getRecommendations() async {
-    // Simulating an API call
-    await Future.delayed(Duration(seconds: 1));
-    return _bookMetadata.map((metadata) {
-      return BookModel.fromMetadata({
-        'book_id': 'book_${metadata['title']!.hashCode}',
-        'title': metadata['title']!,
-        'author': metadata['author']!,
-        'language': metadata['language']!,
-        'cover_url': metadata['coverUrl']!,
-        'total_chapters': 10,
-      });
-    }).toList();
+    try {
+      QuerySnapshot snapshot =
+          await _firestore.collection('books').limit(10).get();
+      return snapshot.docs.map((doc) {
+        return BookModel.fromMetadata(
+          doc.data() as Map<String, dynamic>,
+          doc.id,
+        );
+      }).toList();
+    } catch (e) {
+      print("Error fetching recommendations: $e");
+      return [];
+    }
   }
 
+  /// Search books based on query
   Future<List<BookModel>> searchBooks(String query) async {
-    // Simulating an API call
-    await Future.delayed(Duration(seconds: 1));
-    final allBooks = await getRecommendations();
-    return allBooks
-        .where((book) => book.title.toLowerCase().contains(query.toLowerCase()))
-        .toList();
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('books').get();
+      final allBooks =
+          snapshot.docs.map((doc) {
+            return BookModel.fromMetadata(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            );
+          }).toList();
+
+      return allBooks
+          .where(
+            (book) => book.title.toLowerCase().contains(query.toLowerCase()),
+          )
+          .toList();
+    } catch (e) {
+      print("Error searching books: $e");
+      return [];
+    }
   }
 }

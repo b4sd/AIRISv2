@@ -19,10 +19,10 @@ class BookModel {
     this.content, // Nullable because home doesn't need it
   });
 
-  /// Convert Firestore JSON to BookModel object
-  factory BookModel.fromJson(Map<String, dynamic> json) {
+  /// Convert Firestore document to BookModel
+  factory BookModel.fromFirestore(Map<String, dynamic> json, String docId) {
     return BookModel(
-      bookId: json['book_id'] as String,
+      bookId: docId, // Firestore document ID as bookId
       title: json['title'] as String,
       author: json['author'] as String,
       language: json['language'] as String,
@@ -32,10 +32,10 @@ class BookModel {
     );
   }
 
-  /// Convert Firestore JSON to only metadata (used in Home)
-  factory BookModel.fromMetadata(Map<String, dynamic> json) {
+  /// Convert Firestore document to metadata only (used in Home)
+  factory BookModel.fromMetadata(Map<String, dynamic> json, String docId) {
     return BookModel(
-      bookId: json['book_id'] as String,
+      bookId: docId,
       title: json['title'] as String,
       author: json['author'] as String,
       language: json['language'] as String,
@@ -45,10 +45,9 @@ class BookModel {
     );
   }
 
-  /// Convert BookModel object to JSON (for saving to Firestore)
-  Map<String, dynamic> toJson() {
+  /// Convert BookModel to Firestore JSON format
+  Map<String, dynamic> toFirestore() {
     return {
-      'book_id': bookId,
       'title': title,
       'author': author,
       'language': language,
@@ -59,5 +58,5 @@ class BookModel {
   }
 
   /// Convert to JSON String (for local storage if needed)
-  String toJsonString() => json.encode(toJson());
+  String toJsonString() => json.encode(toFirestore());
 }
