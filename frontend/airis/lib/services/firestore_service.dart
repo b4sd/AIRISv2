@@ -6,81 +6,52 @@ import 'dart:io';
 import 'dart:async';
 
 class FirestoreService {
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final FirebaseFirestore db = FirebaseFirestore.instance;
+  final FirebaseStorage storage = FirebaseStorage.instance;
 
-  // 📚 Add a book (Now supports PDF upload)
-  Future<String> addBook(String title, String author, File pdfFile) async {
-    try {
-      return await Future.microtask(() async {
-        String fileName = "books/${DateTime.now().millisecondsSinceEpoch}.pdf";
-        Reference ref = _storage.ref().child(fileName);
-
-        // UploadTask uploadTask = ref.putFile(pdfFile);
-        // TaskSnapshot snapshot = await uploadTask;
-        // String downloadUrl = await snapshot.ref.getDownloadURL();
-
-        DocumentReference docRef = await _db.collection("books").add({
-          "title": title,
-          "author": author,
-          // "pdfUrl": downloadUrl,
-          "timestamp": FieldValue.serverTimestamp(),
-        });
-
-        return docRef.id; // ✅ Return the new book ID
-      });
-    } catch (e) {
-      print("Error adding book: $e");
-      return "";
-    }
-  }
-
-  // 📂 Upload PDF to Firebase Storage
-  Future<void> uploadFile(File pdfFile) async {
-    try {
-      FirebaseStorage storage = FirebaseStorage.instance;
-      Reference ref = storage.ref().child("books/${DateTime.now().millisecondsSinceEpoch}.pdf");
-      
-      await ref.putFile(pdfFile);
-      String downloadURL = await ref.getDownloadURL();
-      
-      print("Upload successful: $downloadURL");
-    } catch (e) {
-      print("Upload failed: $e");
-    }
-  }
-
-
-  // 📖 Add a chapter to a book
-  Future<void> addChapter(String bookID, String chapterTitle, String content) async {
-    await _db.collection('books').doc(bookID).collection('chapters').add({
-      'title': chapterTitle,
-      'content': content,
+  // Add book
+  Future<String> addBook(String title, String author, String coverUrl, List<String> pages) async {
+    DocumentReference bookRef = await db.collection("books").add({
+      "title": title,
+      "author": author,
+      "coverURL": coverUrl,
     });
+
+    for (int i = 0; i < pages.length; i++) {
+      await bookRef.collection("pages").doc("page${i + 1}").set({
+        "text": pages[i],
+      });
+    }
+    return bookRef.id;
   }
 
-  // 📚 Get all books
-  Future<List<Map<String, dynamic>>> getBooks() async {
-    QuerySnapshot snapshot = await _db.collection('books').get();
-    return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>}).toList();
+  Future<Map<String, dynamic>?> getBookByID(String bookID) async {
+    DocumentSnapshot bookDoc = await db.collection("books").doc(bookID).get();
+
+    if (!bookDoc.exists) return null;
+
+    // ✅ Fetch metadata
+    Map<String, dynamic> bookData = bookDoc.data() as Map<String, dynamic>;
+
+    // ✅ Fetch pages from the subcollection
+    QuerySnapshot pagesSnapshot = await db.collection("books").doc(bookID).collection("pages").get();
+
+    // Convert pages to a list
+    List<String> pages = pagesSnapshot.docs
+        .map((doc) => doc.data() as Map<String, dynamic>) // Convert document to map
+        .map((data) => data["text"] as String) // Extract "text" field
+        .toList();
+
+    // ✅ Return combined data
+    bookData["pages"] = pages;
+    return bookData;
   }
 
-  // 📖 Get all chapters of a book
-  Future<List<Map<String, dynamic>>> getChapters(String bookID) async {
-    QuerySnapshot snapshot = await _db.collection('books').doc(bookID).collection('chapters').get();
-    return snapshot.docs.map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>}).toList();
+  Future<List<String>> getAllBookIDs() async {
+    QuerySnapshot booksSnapshot = await db.collection("books").get();
+
+    List<String> bookIDs = booksSnapshot.docs.map((doc) => doc.id).toList();
+    return bookIDs;
   }
 
-  // // 📁 Pick a PDF file from local storage
-  // Future<File?> pickPDF() async {
-  //   FilePickerResult? result = await FilePicker.platform.pickFiles(
-  //     type: FileType.custom,
-  //     allowedExtensions: ['pdf'],
-  //   );
-
-  //   if (result != null && result.files.single.path != null) {
-  //     return File(result.files.single.path!);
-  //   }
-  //   return null;
-  // }
 }
