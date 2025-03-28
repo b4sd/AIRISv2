@@ -1,7 +1,101 @@
+// import 'package:flutter/material.dart';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'services/firestore_service.dart';
+// import 'firebase_options.dart';
+
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+//   runApp(BookApp());
+// }
+
+// class BookApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       home: BookScreen(),
+//     );
+//   }
+// }
+
+// class BookScreen extends StatefulWidget {
+//   @override
+//   _BookScreenState createState() => _BookScreenState();
+// }
+
+// class _BookScreenState extends State<BookScreen> {
+//   final FirestoreService firestoreService = FirestoreService();
+//   String? bookID;
+//   String? title;
+//   String? author;
+//   List<String>? pages;
+
+//   Future<void> addAndRetrieveBook() async {
+//     // String newBookID = await firestoreService.addBook(
+//     //   "Thanh Giong",
+//     //   "Duy",
+//     //   "",
+//     //   [
+//     //     "Page 1: Introduction...",
+//     //     "Page 2: Setup...",
+//     //     "Page 3: Widgets...",
+//     //   ],
+//     // );
+//     List<String> bookids = await firestoreService.getAllBookIDs();
+//     String newBookID = bookids[0];
+
+//     Map<String, dynamic>? fetchedBook = await firestoreService.getBookByID(newBookID);
+
+//     if (fetchedBook != null) {
+//       print("\n🎉 Book Retrieved Successfully!");
+//       print("Title: ${fetchedBook["title"]}");
+//       print("Author: ${fetchedBook["author"]}");
+//       print("Cover URL: ${fetchedBook["coverURL"]}");
+//       print("Pages:");
+//       for (var i = 0; i < fetchedBook["pages"].length; i++) {
+//         print("  📄 Page ${i + 1}: ${fetchedBook["pages"][i]}");
+//       }
+//       setState(() {
+//         bookID = newBookID;
+//         title = fetchedBook["title"];
+//         author = fetchedBook["author"];
+//         pages = List<String>.from(fetchedBook["pages"] ?? []);
+//       });
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: Text("Book Firestore Demo")),
+//       body: Center(
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             ElevatedButton(
+//               onPressed: addAndRetrieveBook,
+//               child: Text("Add & Retrieve Book"),
+//             ),
+//             if (bookID != null) ...[
+//               SizedBox(height: 20),
+//               Text("📖 Book ID: $bookID", style: TextStyle(fontWeight: FontWeight.bold)),
+//               Text("Title: $title"),
+//               Text("Author: $author"),
+//               Text("Pages:"),
+//               for (var page in pages ?? []) Text("📄 $page"),
+//             ],
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+import './features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'services/firestore_service.dart';
-import 'firebase_options.dart';
+import 'firebase_options.dart'; // Import the generated Firebase config
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,81 +107,9 @@ class BookApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: BookScreen(),
-    );
-  }
-}
-
-class BookScreen extends StatefulWidget {
-  @override
-  _BookScreenState createState() => _BookScreenState();
-}
-
-class _BookScreenState extends State<BookScreen> {
-  final FirestoreService firestoreService = FirestoreService();
-  String? bookID;
-  String? title;
-  String? author;
-  List<String>? pages;
-
-  Future<void> addAndRetrieveBook() async {
-    // String newBookID = await firestoreService.addBook(
-    //   "Thanh Giong",
-    //   "Duy",
-    //   "",
-    //   [
-    //     "Page 1: Introduction...",
-    //     "Page 2: Setup...",
-    //     "Page 3: Widgets...",
-    //   ],
-    // );
-    List<String> bookids = await firestoreService.getAllBookIDs();
-    String newBookID = bookids[0];
-
-    Map<String, dynamic>? fetchedBook = await firestoreService.getBookByID(newBookID);
-
-    if (fetchedBook != null) {
-      print("\n🎉 Book Retrieved Successfully!");
-      print("Title: ${fetchedBook["title"]}");
-      print("Author: ${fetchedBook["author"]}");
-      print("Cover URL: ${fetchedBook["coverURL"]}");
-      print("Pages:");
-      for (var i = 0; i < fetchedBook["pages"].length; i++) {
-        print("  📄 Page ${i + 1}: ${fetchedBook["pages"][i]}");
-      }
-      setState(() {
-        bookID = newBookID;
-        title = fetchedBook["title"];
-        author = fetchedBook["author"];
-        pages = List<String>.from(fetchedBook["pages"] ?? []);
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Book Firestore Demo")),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: addAndRetrieveBook,
-              child: Text("Add & Retrieve Book"),
-            ),
-            if (bookID != null) ...[
-              SizedBox(height: 20),
-              Text("📖 Book ID: $bookID", style: TextStyle(fontWeight: FontWeight.bold)),
-              Text("Title: $title"),
-              Text("Author: $author"),
-              Text("Pages:"),
-              for (var page in pages ?? []) Text("📄 $page"),
-            ],
-          ],
-        ),
-      ),
+      title: 'Book App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: HomeScreen(),
     );
   }
 }
