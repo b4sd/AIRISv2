@@ -7,15 +7,13 @@ class ReaderRepository {
 
   /// ✅ Fetches a single page's content for the Reader Screen
   Future<BookPageModel?> getPageContent(String bookId, int chapterIndex) async {
-    print(bookId);
     final data = await _firestoreService.getDocument(
-      'books/$bookId/pages/page$chapterIndex',
+      'book/$bookId/page/$chapterIndex',
     );
-    print('books/$bookId/pages/page$chapterIndex');
-    print(data);
+
     if (data == null) return null;
 
-    return BookPageModel(text: data['text'] ?? '');
+    return BookPageModel(text: data['content'] ?? '');
   }
 
   /// ✅ Get a random book page for testing

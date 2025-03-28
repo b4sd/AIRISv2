@@ -6,7 +6,7 @@ class HomeRepository {
 
   Future<List<BookMetadataModel>> getRecommendations() async {
     QuerySnapshot snapshot =
-        await _firestore.collection('books').get(); // Fetch books
+        await _firestore.collection('book').get(); // Fetch books
 
     return snapshot.docs.map((doc) {
       return BookMetadataModel.fromFirestore(
@@ -19,7 +19,7 @@ class HomeRepository {
   Future<List<BookMetadataModel>> searchBooks(String query) async {
     QuerySnapshot snapshot =
         await _firestore
-            .collection('books')
+            .collection('book')
             .where('title', isGreaterThanOrEqualTo: query)
             .where('title', isLessThanOrEqualTo: '$query\uf8ff')
             .get();

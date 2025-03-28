@@ -19,7 +19,7 @@ class BookMetadataModel {
       id: docId, // ✅ Store Firestore document ID
       title: data['title'] ?? '',
       author: data['author'] ?? '',
-      totalChapters: data['totalChapters'] ?? 0,
+      totalChapters: data['page'] ?? 0,
     );
   }
 }

@@ -24,7 +24,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void initState() {
     super.initState();
-    print("Total Chapters: ${widget.totalChapters}"); // ✅ Debug print
 
     _pageFuture = _repository.getPageContent(
       widget.bookId,
