@@ -92,10 +92,10 @@
 //   }
 // }
 
-import './features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; // Import the generated Firebase config
+import 'firebase_options.dart'; // Firebase config
+import './features/home/presentation/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -109,10 +109,11 @@ class BookApp extends StatelessWidget {
     return MaterialApp(
       title: 'Book App',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: HomeScreen(),
+      home: HomeScreen(), // HomeScreen now handles FutureBuilder logic
     );
   }
 }
+
 
 
 // import 'package:flutter/material.dart';

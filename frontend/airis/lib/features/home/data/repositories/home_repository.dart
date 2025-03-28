@@ -1,39 +1,34 @@
-import '../models/book_model.dart';
-import '../../../../services/firestore_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/book_metadata_model.dart';
 
 class HomeRepository {
-  final FirestoreService _firestoreService = FirestoreService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<List<BookModel>> getRecommendations() async {
-    List<Map<String, dynamic>> booksData = await _firestoreService
-        .getCollection("books");
+  Future<List<BookMetadataModel>> getRecommendations() async {
+    QuerySnapshot snapshot =
+        await _firestore.collection('books').get(); // Fetch books
 
-    return booksData
-        .map(
-          (data) => BookModel(
-            title: data["title"] ?? "Unknown Title",
-            author: data["author"] ?? "Unknown Author",
-          ),
-        )
-        .toList();
+    return snapshot.docs.map((doc) {
+      return BookMetadataModel.fromFirestore(
+        doc.id,
+        doc.data() as Map<String, dynamic>,
+      );
+    }).toList();
   }
 
-  Future<List<BookModel>> searchBooks(String query) async {
-    List<Map<String, dynamic>> booksData = await _firestoreService
-        .getCollection("books");
+  Future<List<BookMetadataModel>> searchBooks(String query) async {
+    QuerySnapshot snapshot =
+        await _firestore
+            .collection('books')
+            .where('title', isGreaterThanOrEqualTo: query)
+            .where('title', isLessThanOrEqualTo: '$query\uf8ff')
+            .get();
 
-    return booksData
-        .where(
-          (data) =>
-              data["title"] != null &&
-              data["title"].toLowerCase().contains(query.toLowerCase()),
-        )
-        .map(
-          (data) => BookModel(
-            title: data["title"] ?? "Unknown Title",
-            author: data["author"] ?? "Unknown Author",
-          ),
-        )
-        .toList();
+    return snapshot.docs.map((doc) {
+      return BookMetadataModel.fromFirestore(
+        doc.id,
+        doc.data() as Map<String, dynamic>,
+      );
+    }).toList();
   }
 }
