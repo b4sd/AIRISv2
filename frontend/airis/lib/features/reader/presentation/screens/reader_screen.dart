@@ -70,7 +70,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           padding: const EdgeInsets.all(16),
           color: Colors.grey[100],
           child: Text(
-            'Chapter ${_currentChapter + 1} of ${widget.totalChapters}',
+            'Chapter ${_currentChapter} of ${widget.totalChapters}',
             style: Theme.of(context).textTheme.titleMedium,
           ),
         ),

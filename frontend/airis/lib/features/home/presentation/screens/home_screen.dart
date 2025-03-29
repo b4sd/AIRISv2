@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../widgets/book_card.dart';
-import '../widgets/search_bar.dart';
 import '../../data/repositories/home_repository.dart';
 import '../../data/models/book_metadata_model.dart';
 import '../../../reader/presentation/screens/reader_screen.dart';
+import '../widgets/search_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(title: const Text("Book App")),
       body: Column(
         children: [
-          MySearchBar(onSearch: _onSearch),
+          BookSearchBar(onSearch: _onSearch),
           Expanded(
             child: FutureBuilder<List<BookMetadataModel>>(
               future: _booksFuture,
