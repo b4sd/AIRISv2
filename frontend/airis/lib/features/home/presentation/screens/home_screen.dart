@@ -4,6 +4,7 @@ import '../widgets/search_bar.dart';
 import '../../data/repositories/home_repository.dart';
 import '../../../../core/data/models/book_model.dart';
 import '../../../reader/presentation/screen/reader_screen.dart';
+import '../../../../core/widgets/speech_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -35,13 +36,13 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       final allBooks = await _repository.getRecommendations();
       final results =
-          allBooks
-              .where(
-                (book) =>
-                    book.title.toLowerCase().contains(query.toLowerCase()) ||
-                    book.author.toLowerCase().contains(query.toLowerCase()),
-              )
-              .toList();
+       allBooks
+       .where(
+        (book) =>
+            book.title.toLowerCase().contains(query.toLowerCase()) ||
+            book.author.toLowerCase().contains(query.toLowerCase()),
+      )
+      .toList();
       setState(() {
         books = results;
         isSearching = true;
@@ -56,28 +57,30 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           BookSearchBar(onSearch: _onSearch),
+          const SizedBox(height: 20),
+          const SpeechButton(),
           Expanded(
             child:
-                books.isEmpty
-                    ? const Center(child: Text("No books found"))
-                    : ListView.builder(
-                      itemCount: books.length,
-                      itemBuilder: (context, index) {
-                        return BookCard(
-                          book: books[index],
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => ReaderScreen(
-                                      bookId: books[index].bookId,
-                                    ),
+             books.isEmpty
+                ? const Center(child: Text("No books found"))
+                : ListView.builder(
+                    itemCount: books.length,
+                    itemBuilder: (context, index) {
+                      return BookCard(
+                        book: books[index],
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                               (context) => ReaderScreen(
+                                bookId: books[index].bookId,
                               ),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),
