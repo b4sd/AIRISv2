@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../widgets/book_card.dart';
-import '../widgets/search_bar.dart';
 import '../../data/repositories/home_repository.dart';
-import '../../../../core/data/models/book_model.dart';
-import '../../../reader/presentation/screen/reader_screen.dart';
+import '../../data/models/book_metadata_model.dart';
+import '../../../reader/presentation/screens/reader_screen.dart';
+import '../widgets/search_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -14,39 +14,44 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final HomeRepository _repository = HomeRepository();
-  List<BookModel> books = [];
+  late Future<List<BookMetadataModel>> _booksFuture;
   bool isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchBooks();
+    _booksFuture = _fetchRecommendations();
   }
 
-  void _fetchBooks() async {
-    final results = await _repository.getRecommendations();
-    setState(() => books = results);
+  Future<List<BookMetadataModel>> _fetchRecommendations() async {
+    return await _repository.getRecommendations();
   }
 
   void _onSearch(String query) async {
     if (query.isEmpty) {
-      _fetchBooks();
-      setState(() => isSearching = false);
-    } else {
-      final allBooks = await _repository.getRecommendations();
-      final results =
-          allBooks
-              .where(
-                (book) =>
-                    book.title.toLowerCase().contains(query.toLowerCase()) ||
-                    book.author.toLowerCase().contains(query.toLowerCase()),
-              )
-              .toList();
       setState(() {
-        books = results;
+        isSearching = false;
+        _booksFuture = _fetchRecommendations();
+      });
+    } else {
+      setState(() {
         isSearching = true;
+        _booksFuture = _repository.searchBooks(query);
       });
     }
+  }
+
+  void _navigateToReader(BookMetadataModel book) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => ReaderScreen(
+              bookId: book.id,
+              totalChapters: book.totalChapters,
+            ),
+      ),
+    );
   }
 
   @override
@@ -57,27 +62,31 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           BookSearchBar(onSearch: _onSearch),
           Expanded(
-            child:
-                books.isEmpty
-                    ? const Center(child: Text("No books found"))
-                    : ListView.builder(
-                      itemCount: books.length,
-                      itemBuilder: (context, index) {
-                        return BookCard(
-                          book: books[index],
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder:
-                                    (context) => ReaderScreen(
-                                      bookId: books[index].bookId,
-                                    ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
+            child: FutureBuilder<List<BookMetadataModel>>(
+              future: _booksFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  ); // Loading state
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text("No books found"));
+                }
+
+                final books = snapshot.data!;
+                return ListView.builder(
+                  itemCount: books.length,
+                  itemBuilder: (context, index) {
+                    return BookCard(
+                      book: books[index],
+                      onTap: () => _navigateToReader(books[index]),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),
