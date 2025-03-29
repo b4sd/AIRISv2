@@ -6,6 +6,8 @@ import '../../data/models/book_metadata_model.dart';
 import '../../../reader/presentation/screens/reader_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -55,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Book App")),
+      appBar: AppBar(title: const Text("Book App")),
       body: Column(
         children: [
           MySearchBar(onSearch: _onSearch),
