@@ -12,27 +12,6 @@
 .swiftpm/
 migrate_working_dir/
 
-*vscode*
-*.wav
-*credentials.json*
-*firebase_options.dart*
-*.firebase/.graphqlrc*
-*.firebaserc*
-*firebase.json*
-*filestore.rules*
-*dataconnect/connector/connector.yaml*
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
@@ -41,15 +20,46 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+build/
 
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
+# Android-specific
+/android/.gradle/
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Xcode-specific
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_assets/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.podspec
+ios/.dart_tool/
+ios/DerivedData/
+
+# Web-specific
+web/.dart_tool/
+web/.firebase/
+
+# VSCode & JetBrains (IntelliJ, Android Studio)
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Firebase & Credentials
+*credentials.json*
+firebase_options.dart
+*.firebase/.graphqlrc*
+*.firebaserc*
+firebase.json
+filestore.rules
+dataconnect/connector/connector.yaml
+
+# Symbolication & Obfuscation
+app.*.symbols
+app.*.map.json
+
+pubspec.lock
