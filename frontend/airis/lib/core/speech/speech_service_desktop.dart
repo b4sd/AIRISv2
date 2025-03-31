@@ -10,6 +10,7 @@ class SpeechServiceDesktop implements SpeechService {
   bool _isListening = false;
   late SpeechToText _speechToText;
   final recorder = Record(); // using the record package
+  Completer<void>? _recordingCompleter;
 
   SpeechServiceDesktop() {
     _initializeGoogleSpeech();
@@ -53,40 +54,76 @@ class SpeechServiceDesktop implements SpeechService {
       _isListening = true;
       print('Listening...');
 
-      final audioPath = 'audio.wav';
+      final audioPath = 'audio_${DateTime.now().millisecondsSinceEpoch}.wav';
       await recorder.start(
         path: audioPath,
-        encoder: AudioEncoder.wav, // Ensure PCM WAV format
-        bitRate: 128000,
+        encoder: AudioEncoder.wav,
         samplingRate: 16000,
+        numChannels: 1,
       );
 
-      await Future.delayed(Duration(seconds: 5));
+      _recordingCompleter = Completer<void>();
+      await _recordingCompleter!.future;
 
-      await recorder.stop();
-      print('Recording stopped, sending to Google Speech-to-Text.');
-
-      final audioBytes = await File(audioPath).readAsBytes();
-
+      final convertedBytes = await _convertAudio(File(audioPath));
+      
       final config = RecognitionConfig(
         encoding: AudioEncoding.LINEAR16,
         sampleRateHertz: 16000,
-        languageCode: 'vi-VN', // vi-VN for Vietnamese
+        languageCode: 'vi-VN',
+        audioChannelCount: 1,
+        enableAutomaticPunctuation: true,
       );
 
-	try {
-		final response = await _speechToText.recognize(config, audioBytes);
-		print('Response: $response');
-	} catch (e) {
-		print('Error in speech recognition: $e');
-		onResult('Error: $e'); 
-	}
+      try {
+        final response = await _speechToText.recognize(config, convertedBytes);
+        final transcript = response.results
+            .map((result) => result.alternatives.first.transcript)
+            .join('\n');
+        onResult(transcript);
+      } catch (e) {
+        print('Error in speech recognition: $e');
+        onResult('Error: $e');
+      } finally {
+        _isListening = false;
+        await File(audioPath).delete(); // Cleanup
+      }
     }
   }
 
   @override
-  void stop() {
-    _isListening = false;
-    print('Speech recognition stopped.');
+  Future<void> stop() async {
+    if (_isListening) {
+      await recorder.stop();
+      _recordingCompleter?.complete();
+    }
   }
+}
+
+Future<Uint8List> _convertAudio(File inputFile) async {
+  final tempDir = await Directory.systemTemp.createTemp();
+  final outputPath = '${tempDir.path}/converted.wav';
+  
+  // Use FFmpeg for conversion (ensure FFmpeg is available in PATH)
+  final process = await Process.run('ffmpeg', [
+    '-i', inputFile.path,
+    '-ar', '16000',
+    '-ac', '1',
+    '-acodec', 'pcm_s16le',
+    '-y',
+    outputPath
+  ]);
+
+  if (process.exitCode != 0) {
+    throw Exception('FFmpeg conversion failed: ${process.stderr}');
+  }
+
+  final convertedFile = File(outputPath);
+  final bytes = await convertedFile.readAsBytes();
+  
+  // Cleanup
+  await convertedFile.delete();
+  await tempDir.delete();
+  
+  return bytes;
 }
