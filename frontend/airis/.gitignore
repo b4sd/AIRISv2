@@ -12,6 +12,16 @@
 .swiftpm/
 migrate_working_dir/
 
+*vscode*
+*.wav
+*credentials.json*
+*firebase_options.dart*
+*.firebase/.graphqlrc*
+*.firebaserc*
+*firebase.json*
+*filestore.rules*
+*dataconnect/connector/connector.yaml*
+
 # IntelliJ related
 *.iml
 *.ipr

@@ -3,6 +3,7 @@ import '../widgets/book_card.dart';
 import '../../data/repositories/home_repository.dart';
 import '../../data/models/book_metadata_model.dart';
 import '../../../reader/presentation/screens/reader_screen.dart';
+import '../../../../core/widgets/speech_button.dart';
 import '../widgets/search_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -34,6 +35,15 @@ class _HomeScreenState extends State<HomeScreen> {
         _booksFuture = _fetchRecommendations();
       });
     } else {
+      final allBooks = await _repository.getRecommendations();
+      final results =
+       allBooks
+       .where(
+        (book) =>
+            book.title.toLowerCase().contains(query.toLowerCase()) ||
+            book.author.toLowerCase().contains(query.toLowerCase()),
+      )
+      .toList();
       setState(() {
         isSearching = true;
         _booksFuture = _repository.searchBooks(query);
@@ -61,6 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           BookSearchBar(onSearch: _onSearch),
+          const SizedBox(height: 20),
+          const SpeechButton(),
           Expanded(
             child: FutureBuilder<List<BookMetadataModel>>(
               future: _booksFuture,
