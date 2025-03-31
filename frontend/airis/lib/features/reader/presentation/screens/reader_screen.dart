@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/book_page_model.dart';
 import '../../data/repositories/reader_repository.dart';
+import '../widgets/page_navbar.dart';
 
 class ReaderScreen extends StatefulWidget {
   final String bookId;
@@ -24,19 +26,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void initState() {
     super.initState();
-
-    _pageFuture = _repository.getPageContent(
-      widget.bookId,
-      _currentChapter,
-    ); // ✅ Initialize immediately
-  }
-
-  void _loadChapter() {
-    if (_currentChapter <= 1 || _currentChapter > widget.totalChapters) return;
-
-    setState(() {
-      _pageFuture = _repository.getPageContent(widget.bookId, _currentChapter);
-    });
+    _pageFuture = _repository.getPageContent(widget.bookId, _currentChapter);
   }
 
   @override
@@ -50,10 +40,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Text('Lỗi: ${snapshot.error}'),
+            ); // Vietnamese error message
           }
           if (!snapshot.hasData || snapshot.data!.text.isEmpty) {
-            return const Center(child: Text('No content available'));
+            return const Center(child: Text('Không có nội dung sẵn có'));
           }
 
           final page = snapshot.data!;
@@ -64,32 +56,55 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 
   Widget _buildReaderContent(String content) {
+    final ScrollController scrollController = ScrollController();
+
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(16),
           color: Colors.grey[100],
           child: Text(
-            'Chapter ${_currentChapter} of ${widget.totalChapters}',
-            style: Theme.of(context).textTheme.titleMedium,
+            'Trang $_currentChapter / ${widget.totalChapters}',
+            style: GoogleFonts.notoSerif(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              content,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(height: 1.5),
+          child: Scrollbar(
+            thumbVisibility: false, // Hide the scrollbar thumb
+            trackVisibility: false, // Hide the track as well
+            controller: scrollController,
+            child: SingleChildScrollView(
+              controller: scrollController,
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                content,
+                style: GoogleFonts.notoSerif(fontSize: 16, height: 1.5),
+              ),
             ),
           ),
         ),
         _buildNavigationButtons(),
+        PageNavigationBar(
+          currentChapter: _currentChapter,
+          totalChapters: widget.totalChapters,
+          onPageChange: (pageNumber) {
+            setState(() {
+              _currentChapter = pageNumber;
+              _pageFuture = _repository.getPageContent(
+                widget.bookId,
+                _currentChapter,
+              );
+            });
+          },
+        ),
       ],
     );
   }
 
+  // Navigation buttons (previous and next)
   Widget _buildNavigationButtons() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -106,11 +121,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         _pageFuture = _repository.getPageContent(
                           widget.bookId,
                           _currentChapter,
-                        ); // ✅ Update correctly
+                        );
                       });
                     }
                     : null,
-            child: const Text('Previous'),
+            child: const Text('Trước'),
           ),
           ElevatedButton(
             onPressed:
@@ -121,11 +136,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         _pageFuture = _repository.getPageContent(
                           widget.bookId,
                           _currentChapter,
-                        ); // ✅ Update correctly
+                        );
                       });
                     }
                     : null,
-            child: const Text('Next'),
+            child: const Text('Tiếp theo'),
           ),
         ],
       ),
