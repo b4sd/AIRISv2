@@ -37,13 +37,13 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       final allBooks = await _repository.getRecommendations();
       final results =
-       allBooks
-       .where(
-        (book) =>
-            book.title.toLowerCase().contains(query.toLowerCase()) ||
-            book.author.toLowerCase().contains(query.toLowerCase()),
-      )
-      .toList();
+          allBooks
+              .where(
+                (book) =>
+                    book.title.toLowerCase().contains(query.toLowerCase()) ||
+                    book.author.toLowerCase().contains(query.toLowerCase()),
+              )
+              .toList();
       setState(() {
         isSearching = true;
         _booksFuture = _repository.searchBooks(query);
