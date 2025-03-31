@@ -13,7 +13,7 @@ class ReaderRepository {
 
     if (data == null) return null;
 
-    return BookPageModel(text: data['content'] ?? '');
+    return BookPageModel(text: data['content'] ?? '', audioUrl: data['page_audio_url'] ?? '');
   }
 
   /// ✅ Get a random book page for testing
@@ -22,6 +22,6 @@ class ReaderRepository {
     if (pages.isEmpty) return null;
 
     final randomPage = pages[Random().nextInt(pages.length)];
-    return BookPageModel(text: randomPage['text'] ?? '');
+    return BookPageModel(text: randomPage['content'] ?? '', audioUrl: randomPage['page_audio_url'] ?? '');
   }
 }

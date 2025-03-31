@@ -1,5 +1,5 @@
 class BookPageModel {
   final String text;
-
-  BookPageModel({required this.text});
+  final String audioUrl;
+  BookPageModel({required this.text, required this.audioUrl});
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/book_page_model.dart';
 import '../../data/repositories/reader_repository.dart';
+import '../widgets/play_audio_bar.dart';
 
 class ReaderScreen extends StatefulWidget {
   final String bookId;
@@ -20,6 +21,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   final ReaderRepository _repository = ReaderRepository();
   late Future<BookPageModel?> _pageFuture;
   int _currentChapter = 1;
+  String _currentAudioUrl = '';
 
   @override
   void initState() {
@@ -36,6 +38,14 @@ class _ReaderScreenState extends State<ReaderScreen> {
 
     setState(() {
       _pageFuture = _repository.getPageContent(widget.bookId, _currentChapter);
+      _pageFuture.then((page) {
+        if (page != null) {
+          setState(() {
+            _currentAudioUrl = page.audioUrl;
+            print(_currentAudioUrl);
+          });
+        }
+      });
     });
   }
 
@@ -57,13 +67,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
           }
 
           final page = snapshot.data!;
-          return _buildReaderContent(page.text);
+          return _buildReaderContent(page.text, page.audioUrl);
         },
       ),
     );
   }
 
-  Widget _buildReaderContent(String content) {
+  Widget _buildReaderContent(String content, String audioUrl) {
     return Column(
       children: [
         Container(
@@ -86,6 +96,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
           ),
         ),
         _buildNavigationButtons(),
+        PlayAudioBar(audioUrl: audioUrl),
       ],
     );
   }

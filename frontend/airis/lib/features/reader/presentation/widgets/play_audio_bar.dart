@@ -2,37 +2,29 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 
-class AudioPlaybar extends StatefulWidget {
-  final List<String> audioUrls; // List of system-chosen audio files
+class PlayAudioBar extends StatefulWidget {
+  final String audioUrl;
 
-  const AudioPlaybar({Key? key, required this.audioUrls}) : super(key: key);
+  const PlayAudioBar({Key? key, required this.audioUrl}) : super(key: key);
 
   @override
-  _AudioPlaybarState createState() => _AudioPlaybarState();
+  _PlayAudioBarState createState() => _PlayAudioBarState();
 }
 
-class _AudioPlaybarState extends State<AudioPlaybar> {
+class _PlayAudioBarState extends State<PlayAudioBar> {
   final AudioPlayer _player = AudioPlayer();
-  int _currentIndex = 0; // Tracks current audio file index
 
   @override
   void initState() {
     super.initState();
-    _loadAudio();
+    _initAudio();
   }
 
-  /// Load and play the current audio file
-  Future<void> _loadAudio() async {
-    await _player.setUrl(widget.audioUrls[_currentIndex]);
-    _player.play(); // Auto-play when new audio is set
-  }
-
-  /// Change to the next audio file in the list
-  void _changeAudio() {
-    setState(() {
-      _currentIndex = (_currentIndex + 1) % widget.audioUrls.length; // Loop through list
-    });
-    _loadAudio();
+  /// Loads the provided audio file
+  Future<void> _initAudio() async {
+    if (widget.audioUrl.isNotEmpty) {
+      await _player.setUrl(widget.audioUrl);
+    }
   }
 
   @override
@@ -44,13 +36,9 @@ class _AudioPlaybarState extends State<AudioPlaybar> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.grey[900],
-        borderRadius: BorderRadius.circular(15),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: Colors.grey[200],
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           // Progress Bar
           StreamBuilder<Duration>(
@@ -59,51 +47,39 @@ class _AudioPlaybarState extends State<AudioPlaybar> {
               final position = snapshot.data ?? Duration.zero;
               final total = _player.duration ?? Duration.zero;
 
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: ProgressBar(
-                  progress: position,
-                  total: total,
-                  onSeek: (duration) => _player.seek(duration),
-                  barHeight: 5.0,
-                  thumbRadius: 7.0,
-                  baseBarColor: Colors.grey,
-                  progressBarColor: Colors.blueAccent,
-                  thumbColor: Colors.blueAccent,
-                ),
+              return ProgressBar(
+                progress: position,
+                total: total,
+                onSeek: (duration) {
+                  _player.seek(duration);
+                },
               );
             },
           ),
 
-          SizedBox(height: 10),
-
-          // Controls
+          // Playback Controls
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                icon: Icon(Icons.replay_10, color: Colors.white),
+                icon: Icon(Icons.replay_10),
                 onPressed: () => _player.seek(_player.position - Duration(seconds: 10)),
               ),
               IconButton(
-                icon: Icon(Icons.play_arrow, color: Colors.white),
+                icon: Icon(Icons.play_arrow),
                 onPressed: () => _player.play(),
               ),
               IconButton(
-                icon: Icon(Icons.pause, color: Colors.white),
+                icon: Icon(Icons.pause),
                 onPressed: () => _player.pause(),
               ),
               IconButton(
-                icon: Icon(Icons.stop, color: Colors.white),
+                icon: Icon(Icons.stop),
                 onPressed: () => _player.stop(),
               ),
               IconButton(
-                icon: Icon(Icons.forward_10, color: Colors.white),
+                icon: Icon(Icons.forward_10),
                 onPressed: () => _player.seek(_player.position + Duration(seconds: 10)),
-              ),
-              IconButton(
-                icon: Icon(Icons.skip_next, color: Colors.white),
-                onPressed: _changeAudio, // Change audio file
               ),
             ],
           ),
