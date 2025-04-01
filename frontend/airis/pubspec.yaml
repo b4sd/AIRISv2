@@ -45,6 +45,7 @@ dependencies:
   firebase_core: ^2.30.1
   firebase_storage: ^11.6.5
   file_picker: ^9.1.0
+  google_fonts: ^4.0.3
 
 
 dev_dependencies:
