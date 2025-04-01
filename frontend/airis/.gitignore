@@ -63,3 +63,7 @@ app.*.symbols
 app.*.map.json
 
 pubspec.lock
+
+linux/flutter/
+macos/Flutter/
+windows/flutter/
