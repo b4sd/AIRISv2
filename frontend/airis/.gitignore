@@ -67,3 +67,14 @@ pubspec.lock
 linux/flutter/
 macos/Flutter/
 windows/flutter/
+
+*api_key.txt
+.firebase/ (folder)
+.firebase/.graphqlrc 
+lib/firebase_option.dart
+firebase.json
+firestore.indexes.json
+firestore.rules
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
