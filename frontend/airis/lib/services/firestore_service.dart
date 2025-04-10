@@ -53,5 +53,4 @@ class FirestoreService {
     List<String> bookIDs = booksSnapshot.docs.map((doc) => doc.id).toList();
     return bookIDs;
   }
-
 }
