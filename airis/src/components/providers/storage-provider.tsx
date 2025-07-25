@@ -21,8 +21,10 @@ export function StorageProvider({ children }: StorageProviderProps) {
   const [preferences, setPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     loadPreferences();
   }, []);
 
@@ -58,6 +60,22 @@ export function StorageProvider({ children }: StorageProviderProps) {
       throw err;
     }
   };
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <StorageContext.Provider
+        value={{
+          preferences: DEFAULT_PREFERENCES,
+          updatePreferences: async () => {},
+          isLoading: true,
+          error: null,
+        }}
+      >
+        {children}
+      </StorageContext.Provider>
+    );
+  }
 
   return (
     <StorageContext.Provider

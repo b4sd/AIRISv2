@@ -4,13 +4,20 @@ import { generateId } from '@/lib/utils';
 import { validateBook, validateNote, validateUserPreferences } from '@/lib/validation';
 
 export class IndexedDBStorageService implements StorageService {
+  private initialized = false;
+
   constructor() {
-    this.initialize();
+    // Don't initialize in constructor to avoid SSR issues
   }
 
-  private async initialize(): Promise<void> {
+  private async ensureInitialized(): Promise<void> {
+    if (this.initialized || typeof window === 'undefined') {
+      return;
+    }
+
     try {
       await database.initialize();
+      this.initialized = true;
     } catch (error) {
       console.error('Failed to initialize storage service:', error);
       throw new Error('Storage service initialization failed');
@@ -19,6 +26,8 @@ export class IndexedDBStorageService implements StorageService {
 
   // Book operations
   async saveBook(book: Book): Promise<void> {
+    await this.ensureInitialized();
+    
     const validation = validateBook(book);
     if (!validation.success) {
       throw new Error(`Invalid book data: ${validation.error.message}`);

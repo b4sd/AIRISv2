@@ -379,7 +379,10 @@ class DatabaseManager {
 // Singleton instance
 export const database = new DatabaseManager();
 
-// Initialize database on module load
+// Initialize database on module load (only in browser)
 if (typeof window !== 'undefined') {
-  database.initialize().catch(console.error);
+  // Delay initialization to avoid SSR issues
+  setTimeout(() => {
+    database.initialize().catch(console.error);
+  }, 0);
 }
