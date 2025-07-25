@@ -1,15 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  PlayIcon,
-  PauseIcon,
   BookmarkIcon,
   DocumentTextIcon,
   ChatBubbleLeftRightIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline';
+import { TTSControls } from '@/components/reading/tts-controls';
 
 interface ReadingPageProps {
   bookId: string;
@@ -17,27 +17,62 @@ interface ReadingPageProps {
 
 export function ReadingPage({ bookId }: ReadingPageProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [isReading, setIsReading] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [book, setBook] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - will be replaced with real data from storage
-  const book = {
-    id: bookId,
-    title: 'Sách mẫu',
-    author: 'Tác giả mẫu',
-    totalPages: 100,
-    currentChapter: 'Chương 1: Giới thiệu',
+  useEffect(() => {
+    loadBook();
+  }, [bookId]);
+
+  const loadBook = async () => {
+    try {
+      const { storageService } = await import('@/services/storage');
+      const loadedBook = await storageService.getBook(bookId);
+      
+      if (loadedBook) {
+        setBook(loadedBook);
+        setCurrentPage(loadedBook.lastReadPosition.page);
+      }
+    } catch (error) {
+      console.error('Failed to load book:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const mockContent = `
-    Đây là nội dung mẫu của trang ${currentPage}. 
-    
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-    
-    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-    
-    Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-  `;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+          <p className="text-gray-600 dark:text-gray-300">Đang tải sách...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!book) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            Không tìm thấy sách
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300">
+            Sách với ID "{bookId}" không tồn tại.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const currentChapter = book.content.chapters.find((ch: any) => 
+    currentPage >= ch.startPage && currentPage <= ch.endPage
+  );
+
+  const content = currentChapter ? currentChapter.content : 'Không có nội dung để hiển thị.';
 
   return (
     <div className="flex h-full">
@@ -56,27 +91,6 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
             </div>
             
             <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setIsReading(!isReading)}
-                className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isReading
-                    ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200'
-                    : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200'
-                }`}
-              >
-                {isReading ? (
-                  <>
-                    <PauseIcon className="h-4 w-4 mr-1" />
-                    Dừng đọc
-                  </>
-                ) : (
-                  <>
-                    <PlayIcon className="h-4 w-4 mr-1" />
-                    Đọc to
-                  </>
-                )}
-              </button>
-              
               <button className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                 <BookmarkIcon className="h-5 w-5" />
               </button>
@@ -95,12 +109,17 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
           </div>
         </div>
 
+        {/* TTS Controls */}
+        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+          <TTSControls bookId={bookId} />
+        </div>
+
         {/* Reading Content */}
         <div className="flex-1 overflow-auto">
           <div className="max-w-4xl mx-auto p-8">
             <div className="prose prose-lg dark:prose-invert max-w-none">
               <div className="whitespace-pre-line leading-relaxed">
-                {mockContent}
+                {content}
               </div>
             </div>
           </div>
@@ -120,20 +139,20 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
 
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600 dark:text-gray-300">
-                Trang {currentPage} / {book.totalPages}
+                Trang {currentPage} / {book.content.totalPages}
               </span>
               
               <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div
                   className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(currentPage / book.totalPages) * 100}%` }}
+                  style={{ width: `${(currentPage / book.content.totalPages) * 100}%` }}
                 />
               </div>
             </div>
 
             <button
-              onClick={() => setCurrentPage(Math.min(book.totalPages, currentPage + 1))}
-              disabled={currentPage === book.totalPages}
+              onClick={() => setCurrentPage(Math.min(book.content.totalPages, currentPage + 1))}
+              disabled={currentPage === book.content.totalPages}
               className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Trang sau

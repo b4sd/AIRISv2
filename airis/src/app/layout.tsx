@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppProviders } from "@/components/providers/app-providers";
@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   description: "Ứng dụng đọc sách tương tác bằng giọng nói",
   keywords: ["reading", "voice", "books", "vietnamese", "text-to-speech"],
   authors: [{ name: "Voice Reading App Team" }],
-  viewport: "width=device-width, initial-scale=1",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#0f172a" },

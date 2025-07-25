@@ -42,6 +42,8 @@ export class IndexedDBStorageService implements StorageService {
   }
 
   async getBook(id: string): Promise<Book | null> {
+    await this.ensureInitialized();
+    
     if (!id) {
       throw new Error('Book ID is required');
     }
@@ -55,6 +57,8 @@ export class IndexedDBStorageService implements StorageService {
   }
 
   async getAllBooks(): Promise<Book[]> {
+    await this.ensureInitialized();
+    
     try {
       return await database.getAllBooks();
     } catch (error) {
@@ -64,6 +68,8 @@ export class IndexedDBStorageService implements StorageService {
   }
 
   async searchBooks(query: string): Promise<Book[]> {
+    await this.ensureInitialized();
+    
     if (!query || query.trim().length === 0) {
       return this.getAllBooks();
     }
@@ -77,6 +83,8 @@ export class IndexedDBStorageService implements StorageService {
   }
 
   async deleteBook(id: string): Promise<void> {
+    await this.ensureInitialized();
+    
     if (!id) {
       throw new Error('Book ID is required');
     }
@@ -91,6 +99,8 @@ export class IndexedDBStorageService implements StorageService {
 
   // Note operations
   async saveNote(note: Note): Promise<void> {
+    await this.ensureInitialized();
+    
     const validation = validateNote(note);
     if (!validation.success) {
       throw new Error(`Invalid note data: ${validation.error.message}`);
@@ -158,6 +168,8 @@ export class IndexedDBStorageService implements StorageService {
 
   // Preferences operations
   async savePreferences(preferences: UserPreferences): Promise<void> {
+    await this.ensureInitialized();
+    
     const validation = validateUserPreferences(preferences);
     if (!validation.success) {
       throw new Error(`Invalid preferences data: ${validation.error.message}`);
@@ -172,6 +184,8 @@ export class IndexedDBStorageService implements StorageService {
   }
 
   async getPreferences(): Promise<UserPreferences> {
+    await this.ensureInitialized();
+    
     try {
       const preferences = await database.getPreferences();
       return preferences || DEFAULT_PREFERENCES;

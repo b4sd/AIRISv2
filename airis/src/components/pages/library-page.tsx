@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   MagnifyingGlassIcon,
   PlusIcon,
   BookOpenIcon,
   CloudIcon,
 } from '@heroicons/react/24/outline';
+import { Book } from '@/types';
 
 export function LibraryPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -85,19 +87,156 @@ export function LibraryPage() {
 }
 
 function LocalBooksView({ searchQuery }: { searchQuery: string }) {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadBooks();
+  }, [searchQuery]);
+
+  const loadBooks = async () => {
+    try {
+      const { storageService } = await import('@/services/storage');
+      const allBooks = searchQuery 
+        ? await storageService.searchBooks(searchQuery)
+        : await storageService.getAllBooks();
+      setBooks(allBooks);
+    } catch (error) {
+      console.error('Failed to load books:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddTestBook = async () => {
+    try {
+      const { storageService } = await import('@/services/storage');
+      const { generateId } = await import('@/lib/utils');
+      
+      // Create a test book for TTS testing
+      const testBook = {
+        id: generateId(),
+        title: 'Tập 1',
+        author: 'Tác giả Test',
+        content: {
+          chapters: [{
+            id: generateId(),
+            title: 'Chương 1: Giới thiệu',
+            content: `Đây là nội dung test để thử nghiệm tính năng đọc văn bản bằng giọng nói. 
+            
+Chúng ta có thể sử dụng các lệnh giọng nói như "Đọc to cho tôi nghe" để bắt đầu đọc. 
+
+Ứng dụng này được thiết kế đặc biệt cho người khiếm thị, với đầy đủ tính năng hỗ trợ tiếp cận.
+
+Bạn có thể nói "Tạm dừng đọc" để dừng lại, "Tiếp tục đọc" để tiếp tục, hoặc "Đọc nhanh hơn" để tăng tốc độ.
+
+Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" để chọn giọng đọc khác, hoặc "Dừng đọc" để dừng hoàn toàn.`,
+            startPage: 1,
+            endPage: 1,
+          }],
+          totalPages: 1,
+          format: 'txt' as const,
+        },
+        metadata: {
+          language: 'vi',
+          fileSize: 500,
+          wordCount: 80,
+        },
+        lastReadPosition: {
+          page: 1,
+          chapter: 'Chương 1: Giới thiệu',
+          characterOffset: 0,
+          percentage: 0,
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      
+      await storageService.saveBook(testBook);
+      
+      // Reload books
+      await loadBooks();
+    } catch (error) {
+      console.error('Failed to add test book:', error);
+      alert('Không thể thêm sách test: ' + error.message);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="text-gray-600 dark:text-gray-300 mt-2">Đang tải sách...</p>
+      </div>
+    );
+  }
+
+  if (books.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          {searchQuery ? 'Không tìm thấy sách nào' : 'Chưa có sách nào'}
+        </h3>
+        <p className="text-gray-600 dark:text-gray-300 mb-6">
+          {searchQuery 
+            ? `Không có sách nào khớp với "${searchQuery}"`
+            : 'Thêm sách test để thử nghiệm tính năng đọc giọng nói'
+          }
+        </p>
+        {!searchQuery && (
+          <button 
+            onClick={handleAddTestBook}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Thêm sách test
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div className="text-center py-12">
-      <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-        Chưa có sách nào
-      </h3>
-      <p className="text-gray-600 dark:text-gray-300 mb-6">
-        Bắt đầu bằng cách thêm sách đầu tiên vào thư viện của bạn
-      </p>
-      <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-        <PlusIcon className="h-5 w-5 mr-2" />
-        Thêm sách đầu tiên
-      </button>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {books.map((book) => (
+        <div
+          key={book.id}
+          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+        >
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                {book.title}
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                {book.author}
+              </p>
+              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 space-x-2">
+                <span>{book.content.totalPages} trang</span>
+                <span>•</span>
+                <span>{book.content.format.toUpperCase()}</span>
+                <span>•</span>
+                <span>{book.lastReadPosition.percentage}% đã đọc</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Link
+              href={`/read/${book.id}`}
+              className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <BookOpenIcon className="h-4 w-4 mr-1" />
+              Đọc sách
+            </Link>
+            
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              {new Date(book.updatedAt).toLocaleDateString('vi-VN')}
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
