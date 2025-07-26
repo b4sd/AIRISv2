@@ -1,5 +1,5 @@
 {
-  "name": "airis",
+  "name": "@voice-reading-app/frontend",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@voice-reading-app/shared": "*",
     "@headlessui/react": "^2.2.6",
     "@heroicons/react": "^2.2.0",
     "autoprefixer": "^10.4.21",

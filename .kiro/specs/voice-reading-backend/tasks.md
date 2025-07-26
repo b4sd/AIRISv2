@@ -24,7 +24,10 @@ voice-reading-app/
 
 ---
 
-- [ ] 1. Repository restructuring and project setup
+- [x] 1. Repository restructuring and project setup
+
+
+
 
   - Move existing `airis/` folder to `frontend/`
   - Create `backend/` folder with Fastify + TypeScript setup

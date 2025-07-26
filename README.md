@@ -1,83 +1,257 @@
-## Assistive Academic Document Reader for the Visually Impaired
+# Voice Reading App
 
-### Introduction
+A voice-interactive reading application designed for visually impaired users, featuring Vietnamese language support, AI-powered summarization, and multi-device synchronization.
 
-This application is designed to assist visually impaired individuals in accessing and managing academic documents. Leveraging advanced natural language processing (NLP) and machine learning (ML) technologies, it provides comprehensive features such as content summarization, voice-based search, and efficient note management to enhance accessibility and learning experiences.
+## 🏗️ Architecture
 
-### Demo
+This is a monorepo containing:
 
-[Click here to view the demo](https://drive.google.com/file/d/15wezJZsPkbLEBwJ3EeeRmTDrZ6B5DbCa/view?fbclid=IwZXh0bgNhZW0CMTAAAR3MoZjhpY_TkvvLcwOclsu9PGThO_kUBirRHFjPdYAStNL5Mx50o8fvDI8_aem_7Bq2crxMY6r5D2FK1CUTww)
+- **Frontend**: Next.js 15 application with voice interaction
+- **Backend**: Fastify API server with PostgreSQL and Redis
+- **Shared**: Common TypeScript types and utilities
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 20+
+- Docker and Docker Compose
+- npm or yarn
+
+### Development Setup
+
+1. **Clone and install dependencies**:
+
+```bash
+git clone <repository-url>
+cd voice-reading-app
+npm install
+```
+
+2. **Start development services**:
+
+```bash
+# Start PostgreSQL, Redis, and MinIO
+npm run docker:dev
+
+# In another terminal, start the backend
+cd backend
+npm run dev
+
+# In another terminal, start the frontend
+cd frontend
+npm run dev
+```
+
+3. **Access the applications**:
+
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+- MinIO Console: http://localhost:9001 (minioadmin/minioadmin123)
+
+### Environment Configuration
+
+1. **Backend**: Copy `backend/.env.example` to `backend/.env` and configure:
+
+   - Add your OpenAI API key
+   - Configure email service (optional)
+
+2. **Database Setup**:
+
+```bash
+cd backend
+npm run db:generate
+npm run db:migrate
+```
+
+## 📁 Project Structure
+
+```
+voice-reading-app/
+├── frontend/                 # Next.js application
+│   ├── src/
+│   │   ├── app/             # App Router pages
+│   │   ├── components/      # React components
+│   │   ├── services/        # API services
+│   │   └── types/           # TypeScript types
+│   └── package.json
+├── backend/                  # Fastify API server
+│   ├── src/
+│   │   ├── controllers/     # Route handlers
+│   │   ├── services/        # Business logic
+│   │   ├── utils/           # Utilities
+│   │   └── config/          # Configuration
+│   ├── prisma/              # Database schema
+│   └── package.json
+├── shared/                   # Shared code
+│   ├── src/
+│   │   ├── types/           # Common types
+│   │   ├── utils/           # Shared utilities
+│   │   └── validation/      # Zod schemas
+│   └── package.json
+├── docker-compose.dev.yml    # Development services
+└── package.json              # Root workspace config
+```
+
+## 🛠️ Development Commands
+
+### Root Level
+
+```bash
+npm run dev              # Start both frontend and backend
+npm run build            # Build both applications
+npm run test             # Run all tests
+npm run docker:dev       # Start development services
+npm run docker:down      # Stop development services
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm run dev              # Start Next.js dev server
+npm run build            # Build for production
+npm run start            # Start production server
+npm run lint             # Run ESLint
+```
+
+### Backend
+
+```bash
+cd backend
+npm run dev              # Start Fastify dev server
+npm run build            # Build TypeScript
+npm run start            # Start production server
+npm run test             # Run Jest tests
+npm run db:migrate       # Run database migrations
+npm run db:studio        # Open Prisma Studio
+```
+
+### Shared
+
+```bash
+cd shared
+npm run build            # Build shared types
+npm run dev              # Watch mode for development
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+**Backend** (`.env`):
+
+- `DATABASE_URL`: PostgreSQL connection string
+- `REDIS_URL`: Redis connection string
+- `JWT_SECRET`: JWT signing secret (32+ characters)
+- `OPENAI_API_KEY`: OpenAI API key for AI features
+- `S3_*`: File storage configuration
+
+### Database
+
+The backend uses PostgreSQL with Prisma ORM:
+
+```bash
+# Generate Prisma client
+npm run db:generate
+
+# Create and run migrations
+npm run db:migrate
+
+# Reset database (development only)
+npm run db:reset
+
+# Open database browser
+npm run db:studio
+```
+
+## 🧪 Testing
+
+### Unit Tests
+
+```bash
+# Backend tests
+cd backend && npm test
+
+# Frontend tests (when implemented)
+cd frontend && npm test
+```
+
+### Integration Tests
+
+```bash
+# API integration tests
+cd backend && npm run test:integration
+```
+
+## 📦 Deployment
+
+### Development
+
+- Frontend: Runs on port 3000
+- Backend: Runs on port 8000
+- PostgreSQL: Port 5432
+- Redis: Port 6379
+- MinIO: Ports 9000/9001
+
+### Production Options
+
+1. **Vercel + Railway**:
+
+   - Frontend: Deploy to Vercel
+   - Backend: Deploy to Railway
+   - Database: Railway PostgreSQL
+
+2. **Docker Deployment**:
+
+   - Use `docker-compose.prod.yml` (to be created)
+   - Deploy to any Docker-compatible platform
+
+3. **AWS/Cloud**:
+   - Frontend: Vercel/Netlify
+   - Backend: ECS/Fargate
+   - Database: RDS PostgreSQL
+   - Storage: S3
+
+## 🎯 Features
+
+### Current (Frontend)
+
+- ✅ Voice recognition (Vietnamese)
+- ✅ Text-to-speech
+- ✅ Book file processing (PDF, EPUB, TXT)
+- ✅ Offline storage with IndexedDB
+- ✅ Accessibility-first design
+
+### Planned (Backend)
+
+- 🔄 User authentication and profiles
+- 🔄 Multi-device synchronization
+- 🔄 AI-powered summarization
+- 🔄 Cloud file storage
+- 🔄 Advanced analytics
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🆘 Support
+
+For issues and questions:
+
+1. Check the documentation
+2. Search existing issues
+3. Create a new issue with detailed information
 
 ---
 
-### Features
-
-#### 1. **Content Summarization**
-   - Provides summaries of chapters, sections, or specific pages.
-   - Enables answering user queries related to document content using a Question Answering model.
-   - Facilitates efficient information retrieval and comprehension.
-
-#### 2. **Voice-Driven Interaction**
-   - Allows hands-free interaction through voice commands.
-   - Includes Text-to-Speech (TTS) and Speech-to-Text (STT) functionality for document reading and note creation.
-
-#### 3. **Note Management**
-   - Automatically summarizes and categorizes notes.
-   - Enables keyword-based note search for quick retrieval.
-   - Converts voice input into text for storing notes and can read them aloud upon request.
-
-#### 4. **Enhanced Accessibility**
-   - Supports multiple document formats without requiring specialized formatting.
-   - Integrates intelligent voice-assisted search for document navigation.
-   - Utilizes large language models (LLMs) for extracting and synthesizing information from diverse resources.
-
-#### 5. **Visual Element Processing**
-   - Transforms visual elements such as charts, graphs, and mathematical expressions into accessible text.
-   - Enhances understanding of complex information in STEM fields.
-
----
-
-### Expected Outcomes
-
-- **Improved Quality of Life:** Empowers visually impaired individuals by providing equal access to knowledge.
-- **Expanded Opportunities:** Facilitates participation in academic and research activities.
-- **Self-Learning Support:** Encourages independent study using advanced learning tools.
-
----
-
-### Getting Started
-
-#### Prerequisites
-- **System Requirements:** 
-  - A computer or smartphone with audio input/output capabilities.
-  - Internet access for NLP and ML functionalities.
-- **Software Requirements:**
-  - Python 3.8+ or equivalent runtime environment.
-
-#### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/username/project.git
-   ```
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Run the application:
-   ```bash
-   python audiobook_gui.py.py
-   ```
-
----
-
-### Contributors
-
-- **Lê Duy Anh**
-- **Lê Nguyễn Minh Châu**
-- **Nguyễn Tấn Hoàng**
-- **Huỳnh Cao Tuấn Kiệt**
-- **Đinh Điền**
-- **Nguyễn Hồng Bửu Long**
-
-Contact: [ldanh22@clc.fitus.edu.com](mailto:ldanh22@clc.fitus.edu.com)
+**Note**: This is an accessibility-first application designed for visually impaired users. All development should prioritize screen reader compatibility and keyboard navigation.
