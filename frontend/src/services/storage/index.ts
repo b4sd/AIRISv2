@@ -1,17 +1,15 @@
 // Export all storage-related services and utilities
-export { database } from './database';
+import { database } from './database';
+export { database };
 export { storageService, IndexedDBStorageService } from './storage-service';
-export { 
-  onlineBooksManager, 
+export {
+  onlineBooksManager,
   OnlineBooksManager,
   ProjectGutenbergSource,
-  VietnameseWikisourceSource 
+  VietnameseWikisourceSource,
 } from './online-books';
 
-export type { 
-  OnlineBookSource, 
-  OnlineBookResult 
-} from './online-books';
+export type { OnlineBookSource, OnlineBookResult } from './online-books';
 
 // Storage utilities
 export const StorageUtils = {
@@ -39,9 +37,10 @@ export const StorageUtils = {
       return {
         quota: estimate.quota,
         usage: estimate.usage,
-        available: estimate.quota && estimate.usage 
-          ? estimate.quota - estimate.usage 
-          : undefined,
+        available:
+          estimate.quota && estimate.usage
+            ? estimate.quota - estimate.usage
+            : undefined,
       };
     } catch (error) {
       console.error('Failed to get storage quota:', error);
@@ -67,7 +66,7 @@ export const StorageUtils = {
   async clearOldCache(olderThanDays = 30): Promise<void> {
     try {
       await database.initialize();
-      
+
       // This would need to be implemented in the database class
       // For now, just clear all summaries cache
       await database.clearCache();

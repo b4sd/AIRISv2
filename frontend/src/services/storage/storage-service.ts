@@ -1,7 +1,17 @@
-import { Book, Note, UserPreferences, StorageService, DEFAULT_PREFERENCES } from '@/types';
+import {
+  Book,
+  Note,
+  UserPreferences,
+  StorageService,
+  DEFAULT_PREFERENCES,
+} from '@/types';
 import { database } from './database';
 import { generateId } from '@/lib/utils';
-import { validateBook, validateNote, validateUserPreferences } from '@/lib/validation';
+import {
+  validateBook,
+  validateNote,
+  validateUserPreferences,
+} from '@/lib/validation';
 
 export class IndexedDBStorageService implements StorageService {
   private initialized = false;
@@ -27,10 +37,12 @@ export class IndexedDBStorageService implements StorageService {
   // Book operations
   async saveBook(book: Book): Promise<void> {
     await this.ensureInitialized();
-    
+
     const validation = validateBook(book);
     if (!validation.success) {
-      throw new Error(`Invalid book data: ${validation.error.message}`);
+      throw new Error(
+        `Invalid book data: ${validation.error?.message || 'Validation failed'}`
+      );
     }
 
     try {
@@ -43,7 +55,7 @@ export class IndexedDBStorageService implements StorageService {
 
   async getBook(id: string): Promise<Book | null> {
     await this.ensureInitialized();
-    
+
     if (!id) {
       throw new Error('Book ID is required');
     }
@@ -58,7 +70,7 @@ export class IndexedDBStorageService implements StorageService {
 
   async getAllBooks(): Promise<Book[]> {
     await this.ensureInitialized();
-    
+
     try {
       return await database.getAllBooks();
     } catch (error) {
@@ -69,7 +81,7 @@ export class IndexedDBStorageService implements StorageService {
 
   async searchBooks(query: string): Promise<Book[]> {
     await this.ensureInitialized();
-    
+
     if (!query || query.trim().length === 0) {
       return this.getAllBooks();
     }
@@ -84,7 +96,7 @@ export class IndexedDBStorageService implements StorageService {
 
   async deleteBook(id: string): Promise<void> {
     await this.ensureInitialized();
-    
+
     if (!id) {
       throw new Error('Book ID is required');
     }
@@ -100,10 +112,12 @@ export class IndexedDBStorageService implements StorageService {
   // Note operations
   async saveNote(note: Note): Promise<void> {
     await this.ensureInitialized();
-    
+
     const validation = validateNote(note);
     if (!validation.success) {
-      throw new Error(`Invalid note data: ${validation.error.message}`);
+      throw new Error(
+        `Invalid note data: ${validation.error?.message || 'Validation failed'}`
+      );
     }
 
     try {
@@ -169,10 +183,12 @@ export class IndexedDBStorageService implements StorageService {
   // Preferences operations
   async savePreferences(preferences: UserPreferences): Promise<void> {
     await this.ensureInitialized();
-    
+
     const validation = validateUserPreferences(preferences);
     if (!validation.success) {
-      throw new Error(`Invalid preferences data: ${validation.error.message}`);
+      throw new Error(
+        `Invalid preferences data: ${validation.error?.message || 'Validation failed'}`
+      );
     }
 
     try {
@@ -185,7 +201,7 @@ export class IndexedDBStorageService implements StorageService {
 
   async getPreferences(): Promise<UserPreferences> {
     await this.ensureInitialized();
-    
+
     try {
       const preferences = await database.getPreferences();
       return preferences || DEFAULT_PREFERENCES;
@@ -331,13 +347,15 @@ export class IndexedDBStorageService implements StorageService {
   }> {
     try {
       const usage = await database.getStorageUsage();
-      
+
       // Get storage quota if available
       let quota, available;
       if ('storage' in navigator && 'estimate' in navigator.storage) {
         const estimate = await navigator.storage.estimate();
         quota = estimate.quota;
-        available = estimate.quota ? estimate.quota - (estimate.usage || 0) : undefined;
+        available = estimate.quota
+          ? estimate.quota - (estimate.usage || 0)
+          : undefined;
       }
 
       return {
@@ -386,15 +404,11 @@ export class IndexedDBStorageService implements StorageService {
       const promises: Promise<void>[] = [];
 
       if (data.books) {
-        promises.push(
-          ...data.books.map(book => this.saveBook(book))
-        );
+        promises.push(...data.books.map((book) => this.saveBook(book)));
       }
 
       if (data.notes) {
-        promises.push(
-          ...data.notes.map(note => this.saveNote(note))
-        );
+        promises.push(...data.notes.map((note) => this.saveNote(note)));
       }
 
       if (data.preferences) {

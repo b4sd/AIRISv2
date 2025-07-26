@@ -9,15 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@voice-reading-app/shared": "*",
     "@headlessui/react": "^2.2.6",
     "@heroicons/react": "^2.2.0",
+    "@voice-reading-app/shared": "*",
     "autoprefixer": "^10.4.21",
     "clsx": "^2.0.0",
     "epubjs": "^0.3.93",
     "idb": "^8.0.3",
     "next": "15.4.4",
     "pdfjs-dist": "^5.3.93",
+    "picocolors": "^1.1.1",
     "postcss": "^8.5.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",

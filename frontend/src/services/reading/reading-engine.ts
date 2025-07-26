@@ -1,6 +1,10 @@
 'use client';
 
-import { ReadingEngine as IReadingEngine, Book, ReadingPosition } from '@/types';
+import {
+  ReadingEngine as IReadingEngine,
+  Book,
+  ReadingPosition,
+} from '@/types';
 import { textToSpeech } from '@/services/voice/text-to-speech';
 import { storageService } from '@/services/storage';
 
@@ -16,7 +20,10 @@ export class ReadingEngineService implements IReadingEngine {
   // Callbacks for UI updates
   private onPositionChange?: (position: ReadingPosition) => void;
   private onBookChange?: (book: Book | null) => void;
-  private onReadingStateChange?: (isReading: boolean, isPaused: boolean) => void;
+  private onReadingStateChange?: (
+    isReading: boolean,
+    isPaused: boolean
+  ) => void;
 
   constructor() {
     // Set up TTS callbacks
@@ -38,14 +45,18 @@ export class ReadingEngineService implements IReadingEngine {
 
       this.currentBook = book;
       this.currentPosition = { ...book.lastReadPosition };
-      
+
       this.onBookChange?.(book);
-      this.announceToScreenReader(`Đã mở sách: ${book.title} của tác giả ${book.author}`);
-      
+      this.announceToScreenReader(
+        `Đã mở sách: ${book.title} của tác giả ${book.author}`
+      );
+
       return book;
     } catch (error) {
       console.error('Failed to load book:', error);
-      throw new Error(`Không thể mở sách: ${error.message}`);
+      throw new Error(
+        `Không thể mở sách: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -61,7 +72,7 @@ export class ReadingEngineService implements IReadingEngine {
 
     // Find the chapter containing this page
     const chapter = this.findChapterByPage(pageNumber);
-    
+
     this.currentPosition = {
       page: pageNumber,
       chapter: chapter?.title || '',
@@ -79,9 +90,10 @@ export class ReadingEngineService implements IReadingEngine {
       throw new Error('Chưa có sách nào được mở');
     }
 
-    const chapter = this.currentBook.content.chapters.find(ch => 
-      ch.title.toLowerCase().includes(chapterName.toLowerCase()) ||
-      ch.id === chapterName
+    const chapter = this.currentBook.content.chapters.find(
+      (ch) =>
+        ch.title.toLowerCase().includes(chapterName.toLowerCase()) ||
+        ch.id === chapterName
     );
 
     if (!chapter) {
@@ -92,7 +104,9 @@ export class ReadingEngineService implements IReadingEngine {
       page: chapter.startPage,
       chapter: chapter.title,
       characterOffset: 0,
-      percentage: Math.round((chapter.startPage / this.currentBook.content.totalPages) * 100),
+      percentage: Math.round(
+        (chapter.startPage / this.currentBook.content.totalPages) * 100
+      ),
     };
 
     this.savePosition();
@@ -119,7 +133,9 @@ export class ReadingEngineService implements IReadingEngine {
       this.announceToScreenReader('Bắt đầu đọc trang hiện tại');
     } catch (error) {
       console.error('Failed to start reading:', error);
-      throw new Error(`Không thể bắt đầu đọc: ${error.message}`);
+      throw new Error(
+        `Không thể bắt đầu đọc: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -141,13 +157,17 @@ export class ReadingEngineService implements IReadingEngine {
   public adjustSpeed(speed: number): void {
     const clampedSpeed = Math.max(0.1, Math.min(3.0, speed));
     textToSpeech.setRate(clampedSpeed);
-    this.announceToScreenReader(`Đã điều chỉnh tốc độ đọc: ${clampedSpeed.toFixed(1)}x`);
+    this.announceToScreenReader(
+      `Đã điều chỉnh tốc độ đọc: ${clampedSpeed.toFixed(1)}x`
+    );
   }
 
   public adjustVolume(volume: number): void {
     const clampedVolume = Math.max(0, Math.min(1, volume));
     textToSpeech.setVolume(clampedVolume);
-    this.announceToScreenReader(`Đã điều chỉnh âm lượng: ${Math.round(clampedVolume * 100)}%`);
+    this.announceToScreenReader(
+      `Đã điều chỉnh âm lượng: ${Math.round(clampedVolume * 100)}%`
+    );
   }
 
   public changeVoice(): void {
@@ -195,8 +215,10 @@ export class ReadingEngineService implements IReadingEngine {
     }
 
     const chapters = this.currentBook.content.chapters;
-    const currentIndex = chapters.findIndex(ch => ch.id === currentChapter.id);
-    
+    const currentIndex = chapters.findIndex(
+      (ch) => ch.id === currentChapter.id
+    );
+
     if (currentIndex === -1 || currentIndex >= chapters.length - 1) {
       this.announceToScreenReader('Đã ở chương cuối của sách');
       return;
@@ -217,8 +239,10 @@ export class ReadingEngineService implements IReadingEngine {
     }
 
     const chapters = this.currentBook.content.chapters;
-    const currentIndex = chapters.findIndex(ch => ch.id === currentChapter.id);
-    
+    const currentIndex = chapters.findIndex(
+      (ch) => ch.id === currentChapter.id
+    );
+
     if (currentIndex <= 0) {
       this.announceToScreenReader('Đã ở chương đầu của sách');
       return;
@@ -244,7 +268,9 @@ export class ReadingEngineService implements IReadingEngine {
       this.announceToScreenReader(`Bắt đầu đọc ${chapter.title}`);
     } catch (error) {
       console.error('Failed to read chapter:', error);
-      throw new Error(`Không thể đọc chương: ${error.message}`);
+      throw new Error(
+        `Không thể đọc chương: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -255,7 +281,7 @@ export class ReadingEngineService implements IReadingEngine {
 
     const content = this.getCurrentPageContent();
     const remainingContent = content.substring(startPosition);
-    
+
     if (!remainingContent.trim()) {
       throw new Error('Không có nội dung để đọc từ vị trí này');
     }
@@ -264,7 +290,9 @@ export class ReadingEngineService implements IReadingEngine {
       await textToSpeech.speak(remainingContent);
     } catch (error) {
       console.error('Failed to read from position:', error);
-      throw new Error(`Không thể đọc từ vị trí này: ${error.message}`);
+      throw new Error(
+        `Không thể đọc từ vị trí này: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -283,17 +311,19 @@ export class ReadingEngineService implements IReadingEngine {
   private getCurrentChapter() {
     if (!this.currentBook) return null;
 
-    return this.currentBook.content.chapters.find(chapter => 
-      this.currentPosition.page >= chapter.startPage && 
-      this.currentPosition.page <= chapter.endPage
+    return this.currentBook.content.chapters.find(
+      (chapter) =>
+        this.currentPosition.page >= chapter.startPage &&
+        this.currentPosition.page <= chapter.endPage
     );
   }
 
   private findChapterByPage(pageNumber: number) {
     if (!this.currentBook) return null;
 
-    return this.currentBook.content.chapters.find(chapter => 
-      pageNumber >= chapter.startPage && pageNumber <= chapter.endPage
+    return this.currentBook.content.chapters.find(
+      (chapter) =>
+        pageNumber >= chapter.startPage && pageNumber <= chapter.endPage
     );
   }
 
@@ -308,8 +338,10 @@ export class ReadingEngineService implements IReadingEngine {
       ...this.currentPosition,
       characterOffset,
       percentage: Math.round(
-        ((this.currentPosition.page - 1) / this.currentBook.content.totalPages * 100) + 
-        (pageProgress / this.currentBook.content.totalPages)
+        ((this.currentPosition.page - 1) /
+          this.currentBook.content.totalPages) *
+          100 +
+          pageProgress / this.currentBook.content.totalPages
       ),
     };
 
@@ -334,7 +366,9 @@ export class ReadingEngineService implements IReadingEngine {
   }
 
   // Event listeners
-  public onPositionChanged(callback: (position: ReadingPosition) => void): void {
+  public onPositionChanged(
+    callback: (position: ReadingPosition) => void
+  ): void {
     this.onPositionChange = callback;
   }
 
@@ -342,7 +376,9 @@ export class ReadingEngineService implements IReadingEngine {
     this.onBookChange = callback;
   }
 
-  public onReadingStateChanged(callback: (isReading: boolean, isPaused: boolean) => void): void {
+  public onReadingStateChanged(
+    callback: (isReading: boolean, isPaused: boolean) => void
+  ): void {
     this.onReadingStateChange = callback;
   }
 
@@ -379,9 +415,9 @@ export class ReadingEngineService implements IReadingEngine {
     announcement.setAttribute('aria-atomic', 'true');
     announcement.className = 'sr-only';
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
-    
+
     setTimeout(() => {
       if (document.body.contains(announcement)) {
         document.body.removeChild(announcement);

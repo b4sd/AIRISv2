@@ -36,13 +36,13 @@ export class ProjectGutenbergSource implements OnlineBookSource {
       // Using Gutenberg's search API
       const searchUrl = `https://gutendex.com/books/?search=${encodeURIComponent(query)}`;
       const response = await fetch(searchUrl);
-      
+
       if (!response.ok) {
         throw new Error(`Search failed: ${response.statusText}`);
       }
 
       const data = await response.json();
-      
+
       return data.results.map((book: any) => ({
         id: book.id.toString(),
         title: book.title,
@@ -66,7 +66,7 @@ export class ProjectGutenbergSource implements OnlineBookSource {
       // Try to get plain text version first
       const textUrl = `https://www.gutenberg.org/files/${bookId}/${bookId}-0.txt`;
       let response = await fetch(textUrl);
-      
+
       if (!response.ok) {
         // Fallback to UTF-8 version
         const utf8Url = `https://www.gutenberg.org/files/${bookId}/${bookId}-8.txt`;
@@ -87,7 +87,7 @@ export class ProjectGutenbergSource implements OnlineBookSource {
   async getBookMetadata(bookId: string): Promise<any> {
     try {
       const response = await fetch(`https://gutendex.com/books/${bookId}`);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch metadata: ${response.statusText}`);
       }
@@ -107,9 +107,11 @@ export class ProjectGutenbergSource implements OnlineBookSource {
   }
 
   private getDownloadUrl(formats: any): string | undefined {
-    return formats['text/plain'] || 
-           formats['application/epub+zip'] || 
-           formats['application/pdf'];
+    return (
+      formats['text/plain'] ||
+      formats['application/epub+zip'] ||
+      formats['application/pdf']
+    );
   }
 }
 
@@ -124,13 +126,13 @@ export class VietnameseWikisourceSource implements OnlineBookSource {
       // Using Wikisource API
       const searchUrl = `https://vi.wikisource.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
       const response = await fetch(searchUrl);
-      
+
       if (!response.ok) {
         throw new Error(`Search failed: ${response.statusText}`);
       }
 
       const data = await response.json();
-      
+
       return data.query.search.map((result: any) => ({
         id: result.pageid.toString(),
         title: result.title,
@@ -152,14 +154,14 @@ export class VietnameseWikisourceSource implements OnlineBookSource {
       // Get page content using Wikisource API
       const contentUrl = `https://vi.wikisource.org/w/api.php?action=query&pageids=${bookId}&prop=extracts&exintro=false&explaintext=true&format=json&origin=*`;
       const response = await fetch(contentUrl);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch content: ${response.statusText}`);
       }
 
       const data = await response.json();
       const page = data.query.pages[bookId];
-      
+
       if (!page || !page.extract) {
         throw new Error('No content found');
       }
@@ -173,8 +175,10 @@ export class VietnameseWikisourceSource implements OnlineBookSource {
 
   async getBookMetadata(bookId: string): Promise<any> {
     try {
-      const response = await fetch(`https://vi.wikisource.org/w/api.php?action=query&pageids=${bookId}&prop=info&format=json&origin=*`);
-      
+      const response = await fetch(
+        `https://vi.wikisource.org/w/api.php?action=query&pageids=${bookId}&prop=info&format=json&origin=*`
+      );
+
       if (!response.ok) {
         throw new Error(`Failed to fetch metadata: ${response.statusText}`);
       }
@@ -196,8 +200,8 @@ export class OnlineBooksManager {
   ];
 
   async searchAllSources(query: string): Promise<OnlineBookResult[]> {
-    const searchPromises = this.sources.map(source => 
-      source.searchBooks(query).catch(error => {
+    const searchPromises = this.sources.map((source) =>
+      source.searchBooks(query).catch((error) => {
         console.error(`Search failed for ${source.name}:`, error);
         return [];
       })
@@ -207,8 +211,11 @@ export class OnlineBooksManager {
     return results.flat();
   }
 
-  async searchSource(sourceId: string, query: string): Promise<OnlineBookResult[]> {
-    const source = this.sources.find(s => s.id === sourceId);
+  async searchSource(
+    sourceId: string,
+    query: string
+  ): Promise<OnlineBookResult[]> {
+    const source = this.sources.find((s) => s.id === sourceId);
     if (!source) {
       throw new Error(`Unknown source: ${sourceId}`);
     }
@@ -217,7 +224,7 @@ export class OnlineBooksManager {
   }
 
   async downloadBook(bookResult: OnlineBookResult): Promise<Book> {
-    const source = this.sources.find(s => s.id === bookResult.source);
+    const source = this.sources.find((s) => s.id === bookResult.source);
     if (!source) {
       throw new Error(`Unknown source: ${bookResult.source}`);
     }
@@ -255,7 +262,9 @@ export class OnlineBooksManager {
       return book;
     } catch (error) {
       console.error('Failed to download book:', error);
-      throw new Error(`Failed to download book: ${error.message}`);
+      throw new Error(
+        `Failed to download book: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -268,7 +277,7 @@ export class OnlineBooksManager {
   }
 
   removeSource(sourceId: string): void {
-    this.sources = this.sources.filter(s => s.id !== sourceId);
+    this.sources = this.sources.filter((s) => s.id !== sourceId);
   }
 }
 

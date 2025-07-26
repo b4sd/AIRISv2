@@ -17,18 +17,18 @@ export function LibraryPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Thư viện sách
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">
+          <p className="mt-1 text-gray-600 dark:text-gray-300">
             Quản lý và đọc sách của bạn
           </p>
         </div>
-        
-        <button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          <PlusIcon className="h-5 w-5 mr-2" />
+
+        <button className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700">
+          <PlusIcon className="mr-2 h-5 w-5" />
           Thêm sách
         </button>
       </div>
@@ -37,38 +37,38 @@ export function LibraryPage() {
       <div className="space-y-4">
         {/* Search */}
         <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
           <input
             type="text"
             placeholder="Tìm kiếm sách..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
           />
         </div>
 
         {/* Tabs */}
-        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        <div className="flex space-x-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
           <button
             onClick={() => setActiveTab('local')}
-            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === 'local'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
+                : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
             }`}
           >
-            <BookOpenIcon className="h-4 w-4 mr-2" />
+            <BookOpenIcon className="mr-2 h-4 w-4" />
             Sách của tôi
           </button>
           <button
             onClick={() => setActiveTab('online')}
-            className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`flex items-center rounded-md px-4 py-2 text-sm font-medium transition-colors ${
               activeTab === 'online'
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+                ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
+                : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
             }`}
           >
-            <CloudIcon className="h-4 w-4 mr-2" />
+            <CloudIcon className="mr-2 h-4 w-4" />
             Sách trực tuyến
           </button>
         </div>
@@ -97,7 +97,7 @@ function LocalBooksView({ searchQuery }: { searchQuery: string }) {
   const loadBooks = async () => {
     try {
       const { storageService } = await import('@/services/storage');
-      const allBooks = searchQuery 
+      const allBooks = searchQuery
         ? await storageService.searchBooks(searchQuery)
         : await storageService.getAllBooks();
       setBooks(allBooks);
@@ -112,17 +112,18 @@ function LocalBooksView({ searchQuery }: { searchQuery: string }) {
     try {
       const { storageService } = await import('@/services/storage');
       const { generateId } = await import('@/lib/utils');
-      
+
       // Create a test book for TTS testing
       const testBook = {
         id: generateId(),
         title: 'Tập 1',
         author: 'Tác giả Test',
         content: {
-          chapters: [{
-            id: generateId(),
-            title: 'Chương 1: Giới thiệu',
-            content: `Đây là nội dung test để thử nghiệm tính năng đọc văn bản bằng giọng nói. 
+          chapters: [
+            {
+              id: generateId(),
+              title: 'Chương 1: Giới thiệu',
+              content: `Đây là nội dung test để thử nghiệm tính năng đọc văn bản bằng giọng nói. 
             
 Chúng ta có thể sử dụng các lệnh giọng nói như "Đọc to cho tôi nghe" để bắt đầu đọc. 
 
@@ -131,9 +132,10 @@ Chúng ta có thể sử dụng các lệnh giọng nói như "Đọc to cho tô
 Bạn có thể nói "Tạm dừng đọc" để dừng lại, "Tiếp tục đọc" để tiếp tục, hoặc "Đọc nhanh hơn" để tăng tốc độ.
 
 Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" để chọn giọng đọc khác, hoặc "Dừng đọc" để dừng hoàn toàn.`,
-            startPage: 1,
-            endPage: 1,
-          }],
+              startPage: 1,
+              endPage: 1,
+            },
+          ],
           totalPages: 1,
           format: 'txt' as const,
         },
@@ -151,45 +153,49 @@ Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" đ�
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
+
       await storageService.saveBook(testBook);
-      
+
       // Reload books
       await loadBooks();
     } catch (error) {
       console.error('Failed to add test book:', error);
-      alert('Không thể thêm sách test: ' + error.message);
+      alert(
+        'Không thể thêm sách test: ' +
+          (error instanceof Error ? error.message : String(error))
+      );
     }
   };
 
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">Đang tải sách...</p>
+      <div className="py-12 text-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+        <p className="mt-2 text-gray-600 dark:text-gray-300">
+          Đang tải sách...
+        </p>
       </div>
     );
   }
 
   if (books.length === 0) {
     return (
-      <div className="text-center py-12">
-        <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+      <div className="py-12 text-center">
+        <BookOpenIcon className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+        <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-white">
           {searchQuery ? 'Không tìm thấy sách nào' : 'Chưa có sách nào'}
         </h3>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
-          {searchQuery 
+        <p className="mb-6 text-gray-600 dark:text-gray-300">
+          {searchQuery
             ? `Không có sách nào khớp với "${searchQuery}"`
-            : 'Thêm sách test để thử nghiệm tính năng đọc giọng nói'
-          }
+            : 'Thêm sách test để thử nghiệm tính năng đọc giọng nói'}
         </p>
         {!searchQuery && (
-          <button 
+          <button
             onClick={handleAddTestBook}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
+            <PlusIcon className="mr-2 h-5 w-5" />
             Thêm sách test
           </button>
         )}
@@ -198,21 +204,21 @@ Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" đ�
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {books.map((book) => (
         <div
           key={book.id}
-          className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow"
+          className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
         >
-          <div className="flex items-start justify-between mb-4">
+          <div className="mb-4 flex items-start justify-between">
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+              <h3 className="mb-1 text-lg font-semibold text-gray-900 dark:text-white">
                 {book.title}
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+              <p className="mb-2 text-sm text-gray-600 dark:text-gray-300">
                 {book.author}
               </p>
-              <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 space-x-2">
+              <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
                 <span>{book.content.totalPages} trang</span>
                 <span>•</span>
                 <span>{book.content.format.toUpperCase()}</span>
@@ -221,16 +227,16 @@ Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" đ�
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <Link
               href={`/read/${book.id}`}
-              className="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-700"
             >
-              <BookOpenIcon className="h-4 w-4 mr-1" />
+              <BookOpenIcon className="mr-1 h-4 w-4" />
               Đọc sách
             </Link>
-            
+
             <div className="text-xs text-gray-500 dark:text-gray-400">
               {new Date(book.updatedAt).toLocaleDateString('vi-VN')}
             </div>
@@ -243,12 +249,12 @@ Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" đ�
 
 function OnlineBooksView({ searchQuery }: { searchQuery: string }) {
   return (
-    <div className="text-center py-12">
-      <CloudIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+    <div className="py-12 text-center">
+      <CloudIcon className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+      <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-white">
         Tìm kiếm sách trực tuyến
       </h3>
-      <p className="text-gray-600 dark:text-gray-300 mb-6">
+      <p className="mb-6 text-gray-600 dark:text-gray-300">
         Nhập từ khóa để tìm kiếm sách từ các nguồn trực tuyến
       </p>
       {searchQuery && (

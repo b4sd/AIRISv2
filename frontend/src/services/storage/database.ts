@@ -86,7 +86,9 @@ class DatabaseManager {
 
     this.db = await openDB<VoiceReadingDB>(this.dbName, this.version, {
       upgrade(db, oldVersion, newVersion, transaction) {
-        console.log(`Upgrading database from version ${oldVersion} to ${newVersion}`);
+        console.log(
+          `Upgrading database from version ${oldVersion} to ${newVersion}`
+        );
 
         // Books store
         if (!db.objectStoreNames.contains('books')) {
@@ -111,7 +113,9 @@ class DatabaseManager {
 
         // Summaries store
         if (!db.objectStoreNames.contains('summaries')) {
-          const summariesStore = db.createObjectStore('summaries', { keyPath: 'id' });
+          const summariesStore = db.createObjectStore('summaries', {
+            keyPath: 'id',
+          });
           summariesStore.createIndex('by-book', 'bookId');
           summariesStore.createIndex('by-hash', 'contentHash');
           summariesStore.createIndex('by-generated', 'generatedAt');
@@ -119,14 +123,18 @@ class DatabaseManager {
 
         // Bookmarks store
         if (!db.objectStoreNames.contains('bookmarks')) {
-          const bookmarksStore = db.createObjectStore('bookmarks', { keyPath: 'id' });
+          const bookmarksStore = db.createObjectStore('bookmarks', {
+            keyPath: 'id',
+          });
           bookmarksStore.createIndex('by-book', 'bookId');
           bookmarksStore.createIndex('by-created', 'createdAt');
         }
 
         // Online books catalog store
         if (!db.objectStoreNames.contains('onlineBooks')) {
-          const onlineBooksStore = db.createObjectStore('onlineBooks', { keyPath: 'id' });
+          const onlineBooksStore = db.createObjectStore('onlineBooks', {
+            keyPath: 'id',
+          });
           onlineBooksStore.createIndex('by-source', 'source');
           onlineBooksStore.createIndex('by-title', 'title');
           onlineBooksStore.createIndex('by-author', 'author');
@@ -136,8 +144,10 @@ class DatabaseManager {
         console.warn('Database upgrade blocked. Please close other tabs.');
       },
       blocking() {
-        console.warn('Database is blocking a newer version. Closing connection.');
-        this.close();
+        console.warn(
+          'Database is blocking a newer version. Closing connection.'
+        );
+        // The database connection will be closed automatically
       },
     });
 
@@ -179,17 +189,21 @@ class DatabaseManager {
     const db = this.ensureDB();
     const books = await db.getAll('books');
     const searchTerm = query.toLowerCase();
-    
-    return books.filter(book => 
-      book.title.toLowerCase().includes(searchTerm) ||
-      book.author.toLowerCase().includes(searchTerm)
+
+    return books.filter(
+      (book) =>
+        book.title.toLowerCase().includes(searchTerm) ||
+        book.author.toLowerCase().includes(searchTerm)
     );
   }
 
   async deleteBook(id: string): Promise<void> {
     const db = this.ensureDB();
-    const tx = db.transaction(['books', 'notes', 'summaries', 'bookmarks'], 'readwrite');
-    
+    const tx = db.transaction(
+      ['books', 'notes', 'summaries', 'bookmarks'],
+      'readwrite'
+    );
+
     // Delete book and related data
     await Promise.all([
       tx.objectStore('books').delete(id),
@@ -197,7 +211,7 @@ class DatabaseManager {
       this.deleteSummariesByBook(id, tx),
       this.deleteBookmarksByBook(id, tx),
     ]);
-    
+
     await tx.done;
   }
 
@@ -220,14 +234,15 @@ class DatabaseManager {
 
   async searchNotes(query: string, bookId?: string): Promise<Note[]> {
     const db = this.ensureDB();
-    const notes = bookId 
+    const notes = bookId
       ? await db.getAllFromIndex('notes', 'by-book', bookId)
       : await db.getAll('notes');
-    
+
     const searchTerm = query.toLowerCase();
-    return notes.filter(note => 
-      note.content.toLowerCase().includes(searchTerm) ||
-      note.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+    return notes.filter(
+      (note) =>
+        note.content.toLowerCase().includes(searchTerm) ||
+        note.tags.some((tag) => tag.toLowerCase().includes(searchTerm))
     );
   }
 
@@ -239,17 +254,22 @@ class DatabaseManager {
   private async deleteNotesByBook(bookId: string, tx?: any): Promise<void> {
     const db = this.ensureDB();
     const transaction = tx || db.transaction('notes', 'readwrite');
-    const notes = await transaction.objectStore('notes').index('by-book').getAllKeys(bookId);
-    
-    await Promise.all(notes.map(noteId => 
-      transaction.objectStore('notes').delete(noteId)
-    ));
+    const notes = await transaction
+      .objectStore('notes')
+      .index('by-book')
+      .getAllKeys(bookId);
+
+    await Promise.all(
+      notes.map((noteId: string) =>
+        transaction.objectStore('notes').delete(noteId)
+      )
+    );
   }
 
   // Preferences operations
   async savePreferences(preferences: UserPreferences): Promise<void> {
     const db = this.ensureDB();
-    await db.put('preferences', { id: 'user', ...preferences });
+    await db.put('preferences', { ...preferences, id: 'user' } as any);
   }
 
   async getPreferences(): Promise<UserPreferences | null> {
@@ -260,20 +280,23 @@ class DatabaseManager {
 
   // Summaries operations
   async saveSummary(
-    bookId: string, 
-    contentHash: string, 
+    bookId: string,
+    contentHash: string,
     summary: SummaryResponse
   ): Promise<void> {
     const db = this.ensureDB();
     await db.put('summaries', {
+      ...summary,
       id: `${bookId}-${contentHash}`,
       bookId,
       contentHash,
-      ...summary,
-    });
+    } as any);
   }
 
-  async getSummary(bookId: string, contentHash: string): Promise<SummaryResponse | null> {
+  async getSummary(
+    bookId: string,
+    contentHash: string
+  ): Promise<SummaryResponse | null> {
     const db = this.ensureDB();
     const summary = await db.get('summaries', `${bookId}-${contentHash}`);
     return summary || null;
@@ -282,11 +305,16 @@ class DatabaseManager {
   private async deleteSummariesByBook(bookId: string, tx?: any): Promise<void> {
     const db = this.ensureDB();
     const transaction = tx || db.transaction('summaries', 'readwrite');
-    const summaries = await transaction.objectStore('summaries').index('by-book').getAllKeys(bookId);
-    
-    await Promise.all(summaries.map(summaryId => 
-      transaction.objectStore('summaries').delete(summaryId)
-    ));
+    const summaries = await transaction
+      .objectStore('summaries')
+      .index('by-book')
+      .getAllKeys(bookId);
+
+    await Promise.all(
+      summaries.map((summaryId: string) =>
+        transaction.objectStore('summaries').delete(summaryId)
+      )
+    );
   }
 
   // Bookmarks operations
@@ -314,11 +342,16 @@ class DatabaseManager {
   private async deleteBookmarksByBook(bookId: string, tx?: any): Promise<void> {
     const db = this.ensureDB();
     const transaction = tx || db.transaction('bookmarks', 'readwrite');
-    const bookmarks = await transaction.objectStore('bookmarks').index('by-book').getAllKeys(bookId);
-    
-    await Promise.all(bookmarks.map(bookmarkId => 
-      transaction.objectStore('bookmarks').delete(bookmarkId)
-    ));
+    const bookmarks = await transaction
+      .objectStore('bookmarks')
+      .index('by-book')
+      .getAllKeys(bookId);
+
+    await Promise.all(
+      bookmarks.map((bookmarkId: string) =>
+        transaction.objectStore('bookmarks').delete(bookmarkId)
+      )
+    );
   }
 
   // Online books catalog operations
@@ -339,10 +372,11 @@ class DatabaseManager {
     const db = this.ensureDB();
     const books = await db.getAll('onlineBooks');
     const searchTerm = query.toLowerCase();
-    
-    return books.filter(book => 
-      book.title.toLowerCase().includes(searchTerm) ||
-      book.author.toLowerCase().includes(searchTerm)
+
+    return books.filter(
+      (book) =>
+        book.title.toLowerCase().includes(searchTerm) ||
+        book.author.toLowerCase().includes(searchTerm)
     );
   }
 

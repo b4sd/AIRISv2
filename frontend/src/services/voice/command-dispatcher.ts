@@ -20,15 +20,21 @@ export class VoiceCommandDispatcher {
     this.onBookOpen = callback;
   }
 
-  public setTTSCallback(callback: (action: string, params?: any) => void): void {
+  public setTTSCallback(
+    callback: (action: string, params?: any) => void
+  ): void {
     this.onTTSControl = callback;
   }
 
-  public setNoteCallback(callback: (action: string, params?: any) => void): void {
+  public setNoteCallback(
+    callback: (action: string, params?: any) => void
+  ): void {
     this.onNoteAction = callback;
   }
 
-  public setSummaryCallback(callback: (type: string, params?: any) => void): void {
+  public setSummaryCallback(
+    callback: (type: string, params?: any) => void
+  ): void {
     this.onSummaryRequest = callback;
   }
 
@@ -52,15 +58,15 @@ export class VoiceCommandDispatcher {
     switch (action) {
       // Book navigation commands
       case VOICE_ACTIONS.OPEN_BOOK:
-        await this.handleOpenBook(parameters.bookTitle);
+        await this.handleOpenBook(parameters.bookTitle as string);
         break;
 
       case VOICE_ACTIONS.NAVIGATE_PAGE:
-        await this.handleNavigatePage(parameters.pageNumber);
+        await this.handleNavigatePage(parameters.pageNumber as number);
         break;
 
       case VOICE_ACTIONS.NAVIGATE_CHAPTER:
-        await this.handleNavigateChapter(parameters.chapterNumber);
+        await this.handleNavigateChapter(parameters.chapterNumber as number);
         break;
 
       case 'next_page':
@@ -85,7 +91,7 @@ export class VoiceCommandDispatcher {
         break;
 
       case VOICE_ACTIONS.ADJUST_SPEED:
-        this.handleAdjustSpeed(parameters.direction);
+        this.handleAdjustSpeed(parameters.direction as string);
         break;
 
       case VOICE_ACTIONS.CHANGE_VOICE:
@@ -94,7 +100,7 @@ export class VoiceCommandDispatcher {
 
       // Note commands
       case VOICE_ACTIONS.TAKE_NOTE:
-        await this.handleTakeNote(parameters.content);
+        await this.handleTakeNote(parameters.content as string);
         break;
 
       case VOICE_ACTIONS.SHOW_NOTES:
@@ -102,7 +108,7 @@ export class VoiceCommandDispatcher {
         break;
 
       case VOICE_ACTIONS.SEARCH_NOTES:
-        await this.handleSearchNotes(parameters.query);
+        await this.handleSearchNotes(parameters.query as string);
         break;
 
       case VOICE_ACTIONS.DELETE_NOTE:
@@ -164,23 +170,29 @@ export class VoiceCommandDispatcher {
     }
 
     const books = await storageService.searchBooks(bookTitle);
-    
+
     if (books.length === 0) {
-      throw new Error(`Không tìm thấy sách "${bookTitle}". Vui lòng kiểm tra tên sách.`);
+      throw new Error(
+        `Không tìm thấy sách "${bookTitle}". Vui lòng kiểm tra tên sách.`
+      );
     }
 
     // If multiple books found, take the first one or ask for clarification
     const book = books[0];
     this.currentBookId = book.id;
-    
+
     try {
-      const { readingEngine } = await import('@/services/reading/reading-engine');
+      const { readingEngine } = await import(
+        '@/services/reading/reading-engine'
+      );
       await readingEngine.loadBook(book.id);
-      
+
       this.onBookOpen?.(book.id);
       this.onNavigate?.(`/read/${book.id}`);
     } catch (error) {
-      throw new Error(`Không thể mở sách "${bookTitle}": ${error.message}`);
+      throw new Error(
+        `Không thể mở sách "${bookTitle}": ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -194,10 +206,14 @@ export class VoiceCommandDispatcher {
     }
 
     try {
-      const { readingEngine } = await import('@/services/reading/reading-engine');
+      const { readingEngine } = await import(
+        '@/services/reading/reading-engine'
+      );
       readingEngine.navigateToPage(pageNumber);
     } catch (error) {
-      throw new Error(`Không thể chuyển đến trang ${pageNumber}: ${error.message}`);
+      throw new Error(
+        `Không thể chuyển đến trang ${pageNumber}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -211,10 +227,14 @@ export class VoiceCommandDispatcher {
     }
 
     try {
-      const { readingEngine } = await import('@/services/reading/reading-engine');
+      const { readingEngine } = await import(
+        '@/services/reading/reading-engine'
+      );
       readingEngine.navigateToChapter(`Chương ${chapterNumber}`);
     } catch (error) {
-      throw new Error(`Không thể chuyển đến chương ${chapterNumber}: ${error.message}`);
+      throw new Error(
+        `Không thể chuyển đến chương ${chapterNumber}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -224,10 +244,14 @@ export class VoiceCommandDispatcher {
     }
 
     try {
-      const { readingEngine } = await import('@/services/reading/reading-engine');
+      const { readingEngine } = await import(
+        '@/services/reading/reading-engine'
+      );
       await readingEngine.nextPage();
     } catch (error) {
-      throw new Error(`Không thể chuyển trang: ${error.message}`);
+      throw new Error(
+        `Không thể chuyển trang: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -237,10 +261,14 @@ export class VoiceCommandDispatcher {
     }
 
     try {
-      const { readingEngine } = await import('@/services/reading/reading-engine');
+      const { readingEngine } = await import(
+        '@/services/reading/reading-engine'
+      );
       await readingEngine.previousPage();
     } catch (error) {
-      throw new Error(`Không thể quay về trang trước: ${error.message}`);
+      throw new Error(
+        `Không thể quay về trang trước: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -251,10 +279,14 @@ export class VoiceCommandDispatcher {
     }
 
     try {
-      const { readingEngine } = await import('@/services/reading/reading-engine');
+      const { readingEngine } = await import(
+        '@/services/reading/reading-engine'
+      );
       await readingEngine.startReading();
     } catch (error) {
-      throw new Error(`Không thể bắt đầu đọc: ${error.message}`);
+      throw new Error(
+        `Không thể bắt đầu đọc: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -277,7 +309,8 @@ export class VoiceCommandDispatcher {
         const newRate = direction === 'faster' ? 1.5 : 0.8;
         readingEngine.adjustSpeed(newRate);
       } else {
-        const message = direction === 'faster' ? 'Tăng tốc độ đọc.' : 'Giảm tốc độ đọc.';
+        const message =
+          direction === 'faster' ? 'Tăng tốc độ đọc.' : 'Giảm tốc độ đọc.';
         this.announceToScreenReader(message);
       }
     });
@@ -403,7 +436,7 @@ export class VoiceCommandDispatcher {
       - Xem thư viện: Mở thư viện sách
       - Trợ giúp: Hiển thị hướng dẫn này
     `;
-    
+
     this.announceToScreenReader(helpMessage);
   }
 
@@ -435,7 +468,7 @@ export class VoiceCommandDispatcher {
   }
 
   private announceError(intent: CommandIntent, error: Error): void {
-    const message = `Lỗi khi thực hiện lệnh "${intent.originalText}": ${error.message}`;
+    const message = `Lỗi khi thực hiện lệnh "${intent.originalText}": ${error instanceof Error ? error.message : String(error)}`;
     this.announceToScreenReader(message);
   }
 
@@ -446,9 +479,9 @@ export class VoiceCommandDispatcher {
     announcement.setAttribute('aria-atomic', 'true');
     announcement.className = 'sr-only';
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
-    
+
     // Remove after announcement
     setTimeout(() => {
       if (document.body.contains(announcement)) {

@@ -1,7 +1,17 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { VoiceRecognitionState, SpeechSynthesisState, CommandIntent } from '@/types';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from 'react';
+import {
+  VoiceRecognitionState,
+  SpeechSynthesisState,
+  CommandIntent,
+} from '@/types';
 import { speechRecognition } from '@/services/voice/speech-recognition';
 import { commandDispatcher } from '@/services/voice/command-dispatcher';
 
@@ -36,23 +46,29 @@ const initialSynthesisState: SpeechSynthesisState = {
 };
 
 export function VoiceProvider({ children }: VoiceProviderProps) {
-  const [recognition, setRecognition] = useState<VoiceRecognitionState>(initialRecognitionState);
-  const [synthesis, setSynthesis] = useState<SpeechSynthesisState>(initialSynthesisState);
+  const [recognition, setRecognition] = useState<VoiceRecognitionState>(
+    initialRecognitionState
+  );
+  const [synthesis, setSynthesis] = useState<SpeechSynthesisState>(
+    initialSynthesisState
+  );
   const [isSupported, setIsSupported] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    
+
     // Check if speech recognition is supported
-    const supported = typeof window !== 'undefined' && 
-                     (window.SpeechRecognition || window.webkitSpeechRecognition);
+    const supported =
+      typeof window !== 'undefined' &&
+      ((window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition);
     setIsSupported(!!supported);
 
     if (supported) {
       // Set up speech recognition callbacks
       speechRecognition.onStateChanged((state) => {
-        setRecognition(prev => ({
+        setRecognition((prev) => ({
           ...prev,
           isListening: state.isListening,
           confidence: state.confidence,
@@ -60,27 +76,29 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
         }));
       });
 
-      speechRecognition.onCommandReceived((command: string, intent?: CommandIntent) => {
-        setRecognition(prev => ({
-          ...prev,
-          lastCommand: command,
-          lastIntent: intent,
-          isProcessing: true,
-        }));
+      speechRecognition.onCommandReceived(
+        (command: string, intent?: CommandIntent) => {
+          setRecognition((prev) => ({
+            ...prev,
+            lastCommand: command,
+            lastIntent: intent,
+            isProcessing: true,
+          }));
 
-        // Execute the command
-        if (intent) {
-          commandDispatcher.executeCommand(intent).finally(() => {
-            setRecognition(prev => ({
-              ...prev,
-              isProcessing: false,
-            }));
-          });
+          // Execute the command
+          if (intent) {
+            commandDispatcher.executeCommand(intent).finally(() => {
+              setRecognition((prev) => ({
+                ...prev,
+                isProcessing: false,
+              }));
+            });
+          }
         }
-      });
+      );
 
       speechRecognition.onErrorOccurred((error: string) => {
-        setRecognition(prev => ({
+        setRecognition((prev) => ({
           ...prev,
           error,
           isListening: false,
@@ -94,7 +112,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       // Set up TTS callbacks
       const { textToSpeech } = require('@/services/voice/text-to-speech');
       textToSpeech.onStateChanged((ttsState: any) => {
-        setSynthesis(prev => ({
+        setSynthesis((prev) => ({
           ...prev,
           isReading: ttsState.isReading,
           isPaused: ttsState.isPaused,
@@ -107,7 +125,9 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       // Announce that voice control is ready
       if (supported) {
         setTimeout(() => {
-          announceToScreenReader('Điều khiển giọng nói và đọc văn bản đã sẵn sàng. Nhấn phím Space để bắt đầu nghe lệnh.');
+          announceToScreenReader(
+            'Điều khiển giọng nói và đọc văn bản đã sẵn sàng. Nhấn phím Space để bắt đầu nghe lệnh.'
+          );
         }, 1000);
       }
     }
@@ -118,18 +138,20 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   }, []);
 
   const updateRecognition = (updates: Partial<VoiceRecognitionState>) => {
-    setRecognition(prev => ({ ...prev, ...updates }));
+    setRecognition((prev) => ({ ...prev, ...updates }));
   };
 
   const updateSynthesis = (updates: Partial<SpeechSynthesisState>) => {
-    setSynthesis(prev => ({ ...prev, ...updates }));
+    setSynthesis((prev) => ({ ...prev, ...updates }));
   };
 
   const startListening = () => {
     if (isSupported) {
       speechRecognition.startListening();
     } else {
-      announceToScreenReader('Trình duyệt không hỗ trợ nhận dạng giọng nói. Vui lòng sử dụng Chrome, Edge, hoặc Safari.');
+      announceToScreenReader(
+        'Trình duyệt không hỗ trợ nhận dạng giọng nói. Vui lòng sử dụng Chrome, Edge, hoặc Safari.'
+      );
     }
   };
 
@@ -139,15 +161,15 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
 
   const announceToScreenReader = (message: string) => {
     if (typeof window === 'undefined') return;
-    
+
     const announcement = document.createElement('div');
     announcement.setAttribute('aria-live', 'polite');
     announcement.setAttribute('aria-atomic', 'true');
     announcement.className = 'sr-only';
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
-    
+
     setTimeout(() => {
       if (document.body.contains(announcement)) {
         document.body.removeChild(announcement);

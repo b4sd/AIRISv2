@@ -13,26 +13,23 @@ export class PDFParser {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      
+
       // Extract metadata
-      const metadata = await this.extractMetadata(pdf);
-      
+      const extractedData = await this.extractMetadata(pdf);
+
       // Extract text content
       const content = await this.extractText(pdf);
-      
+
       // Create book object
-      const bookData = createBookFromUpload(
-        metadata.title || file.name.replace('.pdf', ''),
-        metadata.author || 'Unknown Author',
-        content,
-        'pdf',
-        {
-          ...metadata,
-          fileSize: file.size,
-          originalFileName: file.name,
-          totalPages: pdf.numPages,
-        }
-      );
+      const title = extractedData.title || file.name.replace('.pdf', '');
+      const author = extractedData.author || 'Unknown Author';
+
+      const bookData = createBookFromUpload(title, author, content, 'pdf', {
+        ...extractedData.metadata,
+        fileSize: file.size,
+        originalFileName: file.name,
+        totalPages: pdf.numPages,
+      });
 
       const book: Book = {
         id: generateId(),
@@ -44,65 +41,85 @@ export class PDFParser {
       return book;
     } catch (error) {
       console.error('PDF parsing error:', error);
-      throw new Error(`Failed to parse PDF: ${error.message}`);
+      throw new Error(
+        `Failed to parse PDF: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
   private async extractText(pdf: any): Promise<string> {
     const textPages: string[] = [];
-    
+
     for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
       try {
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
-        
+
         const pageText = textContent.items
           .map((item: any) => item.str)
           .join(' ')
           .trim();
-        
+
         if (pageText) {
           textPages.push(`--- Trang ${pageNum} ---\n${pageText}\n`);
         }
       } catch (error) {
         console.warn(`Failed to extract text from page ${pageNum}:`, error);
-        textPages.push(`--- Trang ${pageNum} ---\n[Không thể đọc nội dung trang]\n`);
+        textPages.push(
+          `--- Trang ${pageNum} ---\n[Không thể đọc nội dung trang]\n`
+        );
       }
     }
-    
+
     return textPages.join('\n');
   }
 
-  private async extractMetadata(pdf: any): Promise<Partial<BookMetadata>> {
+  private async extractMetadata(pdf: any): Promise<{
+    title?: string;
+    author?: string;
+    metadata: Partial<BookMetadata>;
+  }> {
     try {
       const metadata = await pdf.getMetadata();
       const info = metadata.info;
-      
+
       return {
         title: info.Title || undefined,
         author: info.Author || undefined,
-        publisher: info.Producer || undefined,
-        publishedDate: info.CreationDate ? new Date(info.CreationDate).toISOString() : undefined,
-        description: info.Subject || undefined,
-        language: this.detectLanguage(info.Title, info.Subject),
+        metadata: {
+          publisher: info.Producer || undefined,
+          publishedDate: info.CreationDate
+            ? new Date(info.CreationDate).toISOString()
+            : undefined,
+          description: info.Subject || undefined,
+          language: this.detectLanguage(info.Title, info.Subject),
+          fileSize: 0, // Will be set later
+        },
       };
     } catch (error) {
       console.warn('Failed to extract PDF metadata:', error);
-      return {};
+      return {
+        metadata: {
+          language: 'vi',
+          fileSize: 0,
+        },
+      };
     }
   }
 
   private detectLanguage(title?: string, subject?: string): string {
     const text = `${title || ''} ${subject || ''}`.toLowerCase();
-    
+
     // Simple Vietnamese detection
-    const vietnameseChars = /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/;
-    const vietnameseWords = /\b(và|của|trong|với|cho|từ|đến|về|theo|như|khi|nếu|để|có|là|được|sẽ|đã|đang|các|những|này|đó|tôi|bạn|chúng|họ)\b/;
-    
+    const vietnameseChars =
+      /[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/;
+    const vietnameseWords =
+      /\b(và|của|trong|với|cho|từ|đến|về|theo|như|khi|nếu|để|có|là|được|sẽ|đã|đang|các|những|này|đó|tôi|bạn|chúng|họ)\b/;
+
     if (vietnameseChars.test(text) || vietnameseWords.test(text)) {
       return 'vi';
     }
-    
+
     return 'en';
   }
 
@@ -110,21 +127,25 @@ export class PDFParser {
     try {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      
+
       if (pageNumber < 1 || pageNumber > pdf.numPages) {
-        throw new Error(`Page ${pageNumber} does not exist. PDF has ${pdf.numPages} pages.`);
+        throw new Error(
+          `Page ${pageNumber} does not exist. PDF has ${pdf.numPages} pages.`
+        );
       }
-      
+
       const page = await pdf.getPage(pageNumber);
       const textContent = await page.getTextContent();
-      
+
       return textContent.items
         .map((item: any) => item.str)
         .join(' ')
         .trim();
     } catch (error) {
       console.error('Failed to extract page content:', error);
-      throw new Error(`Failed to extract page ${pageNumber}: ${error.message}`);
+      throw new Error(
+        `Failed to extract page ${pageNumber}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -135,7 +156,9 @@ export class PDFParser {
       return pdf.numPages;
     } catch (error) {
       console.error('Failed to get page count:', error);
-      throw new Error(`Failed to get page count: ${error.message}`);
+      throw new Error(
+        `Failed to get page count: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -146,6 +169,9 @@ export class PDFParser {
   }
 
   isValidPDF(file: File): boolean {
-    return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    return (
+      file.type === 'application/pdf' ||
+      file.name.toLowerCase().endsWith('.pdf')
+    );
   }
 }

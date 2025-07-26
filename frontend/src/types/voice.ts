@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Command Intent Schema
 export const CommandIntentSchema = z.object({
   action: z.string(),
-  parameters: z.record(z.any()),
+  parameters: z.record(z.string(), z.any()),
   confidence: z.number().min(0).max(1),
   originalText: z.string(),
 });
@@ -79,4 +79,4 @@ export const VOICE_ACTIONS = {
   GO_TO_BOOKMARK: 'go_to_bookmark',
 } as const;
 
-export type VoiceAction = typeof VOICE_ACTIONS[keyof typeof VOICE_ACTIONS];
+export type VoiceAction = (typeof VOICE_ACTIONS)[keyof typeof VOICE_ACTIONS];

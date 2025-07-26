@@ -13,11 +13,13 @@ export class BookParser implements IBookParser {
     // Validate file first
     const validation = validateFile(file);
     if (!validation.success) {
-      throw new Error(`Invalid file: ${validation.error.message}`);
+      throw new Error(
+        `Invalid file: ${validation.error?.message || 'Validation failed'}`
+      );
     }
 
     const format = this.detectFormat(file);
-    
+
     try {
       switch (format) {
         case 'pdf':
@@ -31,45 +33,51 @@ export class BookParser implements IBookParser {
       }
     } catch (error) {
       console.error('Book parsing failed:', error);
-      throw new Error(`Failed to parse ${format.toUpperCase()} file: ${error.message}`);
+      throw new Error(
+        `Failed to parse ${format.toUpperCase()} file: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
   async extractText(file: File): Promise<string> {
     const format = this.detectFormat(file);
-    
+
     try {
       switch (format) {
         case 'pdf': {
           const book = await this.pdfParser.parseFile(file);
-          return book.content.chapters.map(ch => ch.content).join('\n\n');
+          return book.content.chapters.map((ch) => ch.content).join('\n\n');
         }
         case 'epub': {
           const book = await this.epubParser.parseFile(file);
-          return book.content.chapters.map(ch => ch.content).join('\n\n');
+          return book.content.chapters.map((ch) => ch.content).join('\n\n');
         }
         case 'txt': {
           const book = await this.textParser.parseFile(file);
-          return book.content.chapters.map(ch => ch.content).join('\n\n');
+          return book.content.chapters.map((ch) => ch.content).join('\n\n');
         }
         default:
           throw new Error(`Unsupported file format: ${format}`);
       }
     } catch (error) {
       console.error('Text extraction failed:', error);
-      throw new Error(`Failed to extract text from ${format.toUpperCase()} file: ${error.message}`);
+      throw new Error(
+        `Failed to extract text from ${format.toUpperCase()} file: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
   async extractMetadata(file: File): Promise<any> {
     const format = this.detectFormat(file);
-    
+
     try {
       const book = await this.parseFile(file);
       return book.metadata;
     } catch (error) {
       console.error('Metadata extraction failed:', error);
-      throw new Error(`Failed to extract metadata from ${format.toUpperCase()} file: ${error.message}`);
+      throw new Error(
+        `Failed to extract metadata from ${format.toUpperCase()} file: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
   }
 
@@ -77,13 +85,19 @@ export class BookParser implements IBookParser {
     // Check by MIME type first
     if (file.type === 'application/pdf') return 'pdf';
     if (file.type === 'application/epub+zip') return 'epub';
-    if (file.type === 'text/plain' || file.type.startsWith('text/')) return 'txt';
+    if (file.type === 'text/plain' || file.type.startsWith('text/'))
+      return 'txt';
 
     // Check by file extension
     const fileName = file.name.toLowerCase();
     if (fileName.endsWith('.pdf')) return 'pdf';
     if (fileName.endsWith('.epub')) return 'epub';
-    if (fileName.endsWith('.txt') || fileName.endsWith('.md') || fileName.endsWith('.markdown')) return 'txt';
+    if (
+      fileName.endsWith('.txt') ||
+      fileName.endsWith('.md') ||
+      fileName.endsWith('.markdown')
+    )
+      return 'txt';
 
     // Default to text for unknown types
     return 'txt';
@@ -111,7 +125,7 @@ export class BookParser implements IBookParser {
   // Format-specific methods
   async getPageCount(file: File): Promise<number> {
     const format = this.detectFormat(file);
-    
+
     switch (format) {
       case 'pdf':
         return await this.pdfParser.getPageCount(file);
@@ -126,12 +140,15 @@ export class BookParser implements IBookParser {
 
   async extractPageContent(file: File, pageNumber: number): Promise<string> {
     const format = this.detectFormat(file);
-    
+
     switch (format) {
       case 'pdf':
         return await this.pdfParser.extractPageContent(file, pageNumber);
       case 'epub':
-        return await this.epubParser.extractChapterContent(file, pageNumber - 1);
+        return await this.epubParser.extractChapterContent(
+          file,
+          pageNumber - 1
+        );
       case 'txt':
         // For text files, treat each "page" as ~50 lines
         const linesPerPage = 50;
@@ -139,13 +156,15 @@ export class BookParser implements IBookParser {
         const endLine = pageNumber * linesPerPage;
         return await this.textParser.extractSection(file, startLine, endLine);
       default:
-        throw new Error(`Page content extraction not supported for format: ${format}`);
+        throw new Error(
+          `Page content extraction not supported for format: ${format}`
+        );
     }
   }
 
   async extractCover(file: File): Promise<string | null> {
     const format = this.detectFormat(file);
-    
+
     switch (format) {
       case 'epub':
         return await this.epubParser.extractCover(file);
@@ -168,10 +187,13 @@ export class BookParser implements IBookParser {
 
   validateFileName(fileName: string): boolean {
     // Check for valid characters and reasonable length
-    const validNamePattern = /^[a-zA-Z0-9\s\-_\.\(\)\[\]àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]+$/;
-    return fileName.length > 0 && 
-           fileName.length <= 255 && 
-           validNamePattern.test(fileName);
+    const validNamePattern =
+      /^[a-zA-Z0-9\s\-_\.\(\)\[\]àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]+$/;
+    return (
+      fileName.length > 0 &&
+      fileName.length <= 255 &&
+      validNamePattern.test(fileName)
+    );
   }
 
   // Utility methods
@@ -185,7 +207,7 @@ export class BookParser implements IBookParser {
   } {
     const format = this.detectFormat(file);
     const isSupported = this.isSupported(file);
-    
+
     // Rough page estimation based on file size and format
     let estimatedPages: number | undefined;
     if (isSupported) {
@@ -215,24 +237,25 @@ export class BookParser implements IBookParser {
   // Error handling
   getParsingError(error: Error, file: File): string {
     const format = this.detectFormat(file);
-    
-    if (error.message.includes('Invalid PDF')) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (errorMessage.includes('Invalid PDF')) {
       return 'Tệp PDF bị hỏng hoặc không hợp lệ. Vui lòng thử tệp PDF khác.';
     }
-    
-    if (error.message.includes('EPUB')) {
+
+    if (errorMessage.includes('EPUB')) {
       return 'Tệp EPUB bị hỏng hoặc không hợp lệ. Vui lòng thử tệp EPUB khác.';
     }
-    
-    if (error.message.includes('encoding')) {
+
+    if (errorMessage.includes('encoding')) {
       return 'Không thể đọc tệp văn bản. Vui lòng đảm bảo tệp sử dụng mã hóa UTF-8.';
     }
-    
-    if (error.message.includes('size')) {
+
+    if (errorMessage.includes('size')) {
       return 'Tệp quá lớn. Vui lòng chọn tệp nhỏ hơn 50MB.';
     }
-    
-    return `Không thể đọc tệp ${format.toUpperCase()}: ${error.message}`;
+
+    return `Không thể đọc tệp ${format.toUpperCase()}: ${errorMessage}`;
   }
 }
 
