@@ -26,12 +26,9 @@ voice-reading-app/
 
 - [x] 1. Repository restructuring and project setup
 
-
-
-
   - Move existing `airis/` folder to `frontend/`
   - Create `backend/` folder with Fastify + TypeScript setup
-  - Create `shared/` folder for common types and utilities
+  - Create `shared/` folder with unified API types and configuration
   - Set up monorepo package.json with workspaces
   - Configure Docker Compose for development environment
   - **TEST: Verify both frontend and backend start correctly, shared types work**
@@ -177,14 +174,15 @@ voice-reading-app/
   - **TEST: Production deployment works, CI/CD pipeline functions, backups restore correctly**
   - _Requirements: 6.1, 6.5, 7.1, 8.1_
 
-- [ ] 16. Frontend integration and API client
+- [ ] 16. Frontend integration and hybrid storage support
 
   - Create TypeScript API client for frontend consumption
-  - Update frontend to use backend APIs instead of local storage
-  - Implement authentication flow in frontend
-  - Add sync functionality to frontend components
-  - Create error handling and offline mode support
-  - **TEST: Frontend integrates seamlessly, authentication works, sync functions across devices**
+  - Build APIs that support hybrid storage (local + cloud sync)
+  - Implement optional authentication with guest user support
+  - Add sync endpoints for incremental data synchronization
+  - Create conflict resolution APIs for multi-device scenarios
+  - Build data migration endpoints for guest-to-user transitions
+  - **TEST: Hybrid storage works, guest mode supported, sync APIs function correctly**
   - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1_
 
 - [ ] 17. Load testing and scalability validation

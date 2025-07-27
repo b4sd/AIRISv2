@@ -13,21 +13,25 @@ graph TB
     A[User Interface - Next.js] --> B[Voice Controller]
     A --> C[Reading Controller]
     A --> D[Notes Controller]
+    A --> E[API Client]
 
-    B --> E[Web Speech API]
-    C --> F[Text-to-Speech Engine]
-    C --> G[Book Parser]
-    D --> H[AI Summarization Service]
+    B --> F[Web Speech API]
+    C --> G[Text-to-Speech Engine]
+    C --> H[Book Parser]
 
     A --> I[State Management - Zustand]
-    I --> J[Local Storage]
-    I --> K[IndexedDB]
+    I --> J[Hybrid Storage Manager]
 
-    G --> L[Book Storage]
-    D --> M[Notes Storage]
+    J --> K[IndexedDB - Local]
+    J --> L[Backend API - Cloud]
 
-    N[External APIs] --> H
-    N --> O[Cloud Sync Service]
+    E --> M[Authentication Service]
+    E --> N[Sync Service]
+    E --> O[AI Service - Backend]
+
+    L --> P[Fastify Backend]
+    P --> Q[PostgreSQL + S3]
+    P --> R[OpenAI API]
 ```
 
 ### Technology Stack
@@ -37,12 +41,13 @@ graph TB
 - **State Management**: Zustand for global state
 - **Speech Recognition**: Web Speech API (SpeechRecognition) with Vietnamese language support
 - **Text-to-Speech**: Web Speech API (SpeechSynthesis) with Vietnamese voices
-- **Natural Language Processing**: OpenAI API or local NLP models for Vietnamese intent recognition
-- **AI Summarization**: OpenAI API or similar service with Vietnamese language support
-- **Local Storage**: IndexedDB for books and notes
+- **Natural Language Processing**: Backend API for Vietnamese intent recognition
+- **AI Summarization**: Backend API with caching and Vietnamese language support
+- **Storage**: Hybrid approach - IndexedDB (local) + Cloud API (sync)
+- **Authentication**: Optional JWT-based auth with guest mode support
 - **File Processing**: PDF.js for PDF parsing, epub.js for EPUB files
 - **Audio Processing**: Web Audio API for enhanced voice processing
-- **Language Processing**: Vietnamese tokenization and keyword extraction libraries
+- **API Client**: Custom TypeScript client with offline queue support
 
 ## Components and Interfaces
 
@@ -129,16 +134,57 @@ interface SummarizationService {
   ): Promise<string>;
   generateKeyPoints(text: string): Promise<string[]>;
   isAvailable(): boolean;
+  getCachedSummary(contentHash: string): Promise<string | null>;
+  invalidateCache(contentHash: string): Promise<void>;
 }
 ```
 
 **Responsibilities:**
 
-- AI-powered content summarization in Vietnamese and English
-- Key point extraction
-- Service availability checking
+- Backend API integration for AI-powered summarization
+- Local caching of AI responses in IndexedDB
+- Fallback to cached summaries when backend is unavailable
+- Vietnamese and English language support through backend
 
-#### 5. NaturalLanguageProcessor
+#### 5. HybridStorageManager
+
+```typescript
+interface HybridStorageManager {
+  // Local operations (immediate)
+  getLocal<T>(key: string): Promise<T | null>;
+  setLocal<T>(key: string, data: T): Promise<void>;
+  deleteLocal(key: string): Promise<void>;
+
+  // Sync operations (background)
+  syncToCloud(): Promise<void>;
+  syncFromCloud(): Promise<void>;
+  resolveConflicts(conflicts: DataConflict[]): Promise<void>;
+
+  // Status and configuration
+  isOnline(): boolean;
+  getSyncStatus(): SyncStatus;
+  enableSync(authToken: string): void;
+  disableSync(): void;
+}
+
+interface DataConflict {
+  key: string;
+  localData: any;
+  cloudData: any;
+  localTimestamp: Date;
+  cloudTimestamp: Date;
+}
+```
+
+**Responsibilities:**
+
+- Manage hybrid storage between IndexedDB and cloud API
+- Handle automatic background synchronization
+- Resolve data conflicts using timestamp-based strategy
+- Provide offline-first experience with cloud backup
+- Support guest mode and authenticated mode seamlessly
+
+#### 6. NaturalLanguageProcessor
 
 ```typescript
 interface NaturalLanguageProcessor {

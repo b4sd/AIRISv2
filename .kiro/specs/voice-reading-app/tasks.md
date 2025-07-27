@@ -1,5 +1,33 @@
 # Implementation Plan
 
+## 🔄 Hybrid Storage Architecture
+
+**UPDATED APPROACH: The app now uses a hybrid storage system combining local IndexedDB with cloud synchronization:**
+
+### Storage Strategy:
+
+- **Local-First**: All data stored in IndexedDB for offline access
+- **Cloud Sync**: Automatic synchronization with backend API when online
+- **Guest Mode**: Full functionality without account creation
+- **Progressive Enhancement**: Users can optionally create accounts for multi-device sync
+
+### Data Flow:
+
+```
+User Action → IndexedDB (immediate) → Background Sync → Cloud Storage
+                ↓
+         Immediate UI Update
+```
+
+### Sync Behavior:
+
+- **Offline**: Full functionality with IndexedDB only
+- **Online**: Automatic background sync with conflict resolution
+- **Multi-device**: Last-write-wins with timestamp comparison
+- **Migration**: Seamless upgrade from guest to authenticated user
+
+---
+
 ## 🧪 Testing Strategy for Accessibility-First Development
 
 **CRITICAL: Since this app is designed for visually impaired users, testing must be done after every task with:**
@@ -98,6 +126,7 @@
   - Implement intent recognition for common reading commands
   - Build entity extraction for book titles, page numbers, and chapters
   - Add support for flexible command variations and synonyms
+
   - Create command confidence scoring system
   - Write comprehensive tests for Vietnamese NLP functionality
   - **TEST: Test various Vietnamese command patterns, verify intent recognition accuracy, test with different accents/speaking styles**
@@ -125,118 +154,141 @@
   - **TEST: Test complete voice workflows (open book → read → take notes), verify command execution feedback, test error recovery**
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 4.1_
 
-- [ ] 10. Integrate AI summarization service
+- [ ] 10. Create API client and backend integration layer
 
-  - Set up OpenAI API integration with Vietnamese language support
-  - Create SummarizationService with page, chapter, and book summarization
-  - Implement key point extraction functionality
-  - Add error handling and fallback mechanisms for API failures
-  - Build caching system for generated summaries
-  - Write tests for summarization with Vietnamese content
-  - **TEST: Test Vietnamese summary quality, voice command "Tóm tắt chương này", verify TTS reads summaries correctly**
+  - Create TypeScript API client for backend communication
+  - Implement authentication flow with JWT token management
+  - Add API endpoints for books, notes, preferences, and AI services
+  - Build request/response interceptors with error handling
+  - Create offline queue for API requests when network is unavailable
+  - Add API client configuration and environment management
+  - **TEST: API client connects to backend, authentication works, offline queue functions**
+  - _Requirements: 7.2, 1.1, 3.1_
+
+- [ ] 11. Implement hybrid storage system (IndexedDB + Cloud sync)
+
+  - Create storage abstraction layer supporting both local and cloud storage
+  - Implement automatic sync between IndexedDB and backend API
+  - Add conflict resolution for data synchronization (last-write-wins)
+  - Build offline-first approach with cloud backup
+  - Create data migration utilities from pure IndexedDB to hybrid model
+  - Add sync status indicators and manual sync triggers
+  - **TEST: Data syncs between devices, offline mode works, conflicts resolve correctly**
+  - _Requirements: 7.2, 6.1, 6.2, 3.1_
+
+- [ ] 12. Integrate backend AI summarization service
+
+  - Connect to backend AI API instead of direct OpenAI integration
+  - Implement SummarizationService that calls backend endpoints
+  - Add caching for AI responses with IndexedDB fallback
+  - Build error handling with graceful degradation to cached summaries
+  - Create loading states and progress indicators for AI processing
+  - Add Vietnamese language optimization through backend API
+  - **TEST: Backend AI integration works, caching improves performance, Vietnamese summaries are accurate**
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 11. Implement note-taking system with voice integration
+- [ ] 13. Implement hybrid note-taking system with cloud sync
 
-  - Create NotesManager service with CRUD operations
-  - Build voice-activated note creation with position linking
+  - Create NotesManager service supporting both local and cloud storage
+  - Build voice-activated note creation with automatic cloud sync
   - Implement note search functionality with Vietnamese text support
-  - Add note display and management UI components
+  - Add note display and management UI components with sync status
   - Create voice commands for note retrieval and deletion
-  - Write tests for note management and voice integration
-  - **TEST: Test voice note creation "Ghi chú: [content]", verify notes are linked to reading position, test note search and TTS playback**
-  - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
+  - Build conflict resolution for notes edited on multiple devices
+  - **TEST: Voice notes sync across devices, search works offline and online, conflicts resolve properly**
+  - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 7.2_
 
-- [ ] 12. Build reading navigation and position tracking
+- [ ] 14. Build reading navigation with cloud position sync
 
   - Implement page and chapter navigation with voice commands
-  - Create bookmark system with voice activation
-  - Add reading progress tracking and persistence
-  - Build visual indicators for current reading position
+  - Create bookmark system with cloud synchronization
+  - Add reading progress tracking that syncs across devices
+  - Build visual indicators for current reading position and sync status
   - Implement smooth scrolling and page transitions
-  - Write tests for navigation accuracy and position persistence
-  - **TEST: Test voice navigation "Chuyển trang tiếp theo", verify reading position persistence, test bookmark voice commands**
-  - _Requirements: 1.1, 1.2, 1.3, 1.4, 6.3, 6.4_
+  - Add conflict resolution for reading positions from multiple devices
+  - **TEST: Reading position syncs across devices, voice navigation works, bookmarks persist in cloud**
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 6.3, 6.4, 7.2_
 
-- [ ] 13. Create user preferences and settings management
+- [ ] 15. Create user preferences with cloud synchronization
 
   - Build settings UI for voice, reading, and AI preferences
   - Implement Vietnamese language settings and voice selection
-  - Add TTS speed, volume, and voice customization
+  - Add TTS speed, volume, and voice customization with cloud sync
   - Create AI summarization preferences (length, style, language)
-  - Build settings persistence and synchronization
-  - Write tests for preferences management and application
-  - **TEST: Test voice-controlled settings changes, verify preferences persist across sessions, test accessibility of settings UI**
-  - _Requirements: 6.5, 2.4, 2.5_
+  - Build settings persistence with automatic cloud backup
+  - Add guest mode support for users without accounts
+  - **TEST: Preferences sync across devices, guest mode works, voice-controlled settings function**
+  - _Requirements: 6.5, 2.4, 2.5, 7.2_
 
-- [ ] 14. Implement error handling and fallback mechanisms
+- [ ] 16. Implement comprehensive error handling and offline support
 
-  - Add comprehensive error handling for speech recognition failures
+  - Add comprehensive error handling for speech recognition and API failures
   - Implement fallback to keyboard input when voice is unavailable
-  - Create user-friendly error messages in Vietnamese
-  - Build retry mechanisms for failed operations
-  - Add offline mode support for downloaded books
-  - Write tests for error scenarios and recovery mechanisms
-  - **TEST: Test with microphone disabled, test offline functionality, verify error messages are announced to screen readers**
-  - _Requirements: 5.3, 5.4, 5.5, 7.4_
+  - Create user-friendly error messages in Vietnamese with sync status
+  - Build retry mechanisms for failed API requests with exponential backoff
+  - Add robust offline mode support with local data access
+  - Create network status detection and automatic sync resumption
+  - **TEST: Offline mode works completely, API failures handled gracefully, sync resumes when online**
+  - _Requirements: 5.3, 5.4, 5.5, 7.4, 7.2_
 
-- [ ] 15. Add responsive design and mobile optimization
+- [ ] 17. Add responsive design and mobile optimization
 
   - Optimize UI components for mobile devices and touch interaction
   - Implement responsive layouts for different screen sizes
   - Add mobile-specific voice interaction patterns
   - Create touch-friendly controls alongside voice commands
-  - Test cross-browser compatibility and mobile performance
-  - **TEST: Test on mobile devices, verify voice works on mobile Safari/Chrome, test touch accessibility with VoiceOver/TalkBack**
-  - _Requirements: 7.1, 7.3_
+  - Optimize mobile performance for sync operations and offline mode
+  - **TEST: Mobile sync works efficiently, voice functions on mobile browsers, touch accessibility verified**
+  - _Requirements: 7.1, 7.3, 7.2_
 
-- [ ] 16. Build comprehensive testing suite
+- [ ] 18. Build comprehensive testing suite with sync testing
 
-  - Create end-to-end tests for complete user workflows
-  - Add integration tests for voice command processing
-  - Implement performance tests for large book handling
+  - Create end-to-end tests for complete user workflows including sync
+  - Add integration tests for API client and backend communication
+  - Implement performance tests for large book handling and sync operations
   - Build accessibility tests for screen reader compatibility
-  - Create tests for Vietnamese language processing accuracy
-  - Add cross-browser compatibility tests
-  - **TEST: Run full accessibility audit with axe-core, test with NVDA/JAWS/VoiceOver, verify WCAG 2.1 AA compliance**
-  - _Requirements: 5.1, 5.2, 7.3_
+  - Create tests for offline/online mode transitions
+  - Add multi-device sync testing scenarios
+  - **TEST: Full sync workflows tested, accessibility compliance verified, performance meets targets**
+  - _Requirements: 5.1, 5.2, 7.3, 7.2_
 
-- [ ] 17. Implement data synchronization and backup
+- [ ] 19. Implement authentication UI and user management
 
-  - Create cloud sync service for user data and preferences
-  - Build conflict resolution for multi-device synchronization
-  - Implement data export and import functionality
-  - Add automatic backup for notes and reading progress
-  - Write tests for sync reliability and data integrity
-  - **TEST: Test sync across multiple devices, verify data integrity, test voice-controlled backup/restore**
-  - _Requirements: 7.2, 6.6_
+  - Create optional authentication UI (login, register, guest mode)
+  - Build user profile management with voice commands
+  - Implement account linking for guest users who want to create accounts
+  - Add data migration from guest mode to authenticated mode
+  - Create account settings and data export functionality
+  - Build voice-controlled account management features
+  - **TEST: Authentication flow works, guest-to-user migration functions, voice account management works**
+  - _Requirements: 7.2, 1.1_
 
-- [ ] 18. Add security and privacy features
+- [ ] 20. Add security and privacy features for hybrid storage
 
-  - Implement data encryption for sensitive user information
-  - Add privacy controls for voice data handling
-  - Create secure API communication for external services
-  - Build user consent management for microphone access
-  - Implement rate limiting for AI service usage
-  - Write security tests and vulnerability assessments
-  - **TEST: Verify no voice data is stored permanently, test microphone permission flow, audit data privacy compliance**
-  - _Requirements: 5.5_
+  - Implement data encryption for sensitive user information in IndexedDB
+  - Add privacy controls for voice data handling and cloud sync
+  - Create secure API communication with JWT token management
+  - Build user consent management for microphone and cloud sync
+  - Implement client-side rate limiting and request throttling
+  - Add data retention policies and user data deletion
+  - **TEST: Local data encrypted, API communication secure, privacy controls functional**
+  - _Requirements: 5.5, 7.1, 7.2_
 
-- [ ] 19. Create comprehensive documentation and help system
+- [ ] 21. Create comprehensive documentation and help system
 
   - Build in-app help system with Vietnamese voice command examples
-  - Create user onboarding flow with voice feature introduction
-  - Add contextual help tooltips and guidance
+  - Create user onboarding flow explaining sync and offline features
+  - Add contextual help tooltips and guidance for hybrid storage
   - Implement voice command reference and tutorial
-  - Create troubleshooting guide for common issues
-  - **TEST: Test voice-activated help "Trợ giúp", verify onboarding is accessible, test help system with screen readers**
-  - _Requirements: 5.2, 5.3_
+  - Create troubleshooting guide for sync and connectivity issues
+  - **TEST: Help system explains sync features, onboarding covers offline/online modes, troubleshooting works**
+  - _Requirements: 5.2, 5.3, 7.2_
 
-- [ ] 20. Final integration testing and optimization
-  - Conduct full system integration testing with all features
-  - Optimize performance for voice processing and book rendering
-  - Test complete user journeys from book upload to voice interaction
-  - Validate Vietnamese language processing accuracy
-  - Perform final accessibility and usability testing
-  - **TEST: Complete end-to-end user journey testing with visually impaired users, performance testing with large books, final accessibility certification**
-  - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1_
+- [ ] 22. Final integration testing and optimization
+  - Conduct full system integration testing with backend and sync features
+  - Optimize performance for voice processing, sync operations, and book rendering
+  - Test complete user journeys including multi-device scenarios
+  - Validate Vietnamese language processing accuracy with backend AI
+  - Perform final accessibility and usability testing with sync features
+  - **TEST: Complete multi-device user journey testing, performance optimization verified, accessibility certified**
+  - _Requirements: 1.1, 2.1, 3.1, 4.1, 5.1, 6.1, 7.1, 7.2_
