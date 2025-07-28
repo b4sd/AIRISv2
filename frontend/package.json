@@ -1,0 +1,43 @@
+{
+  "name": "@voice-reading-app/frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@headlessui/react": "^2.2.6",
+    "@heroicons/react": "^2.2.0",
+    "@voice-reading-app/shared": "*",
+    "autoprefixer": "^10.4.21",
+    "clsx": "^2.0.0",
+    "epubjs": "^0.3.93",
+    "idb": "^8.0.3",
+    "next": "15.4.4",
+    "pdfjs-dist": "^5.3.93",
+    "picocolors": "^1.1.1",
+    "postcss": "^8.5.6",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "tailwind-merge": "^2.2.0",
+    "tailwindcss": "^3.4.0",
+    "uuid": "^11.1.0",
+    "zod": "^4.0.10",
+    "zustand": "^5.0.6"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.4",
+    "prettier": "^3.1.1",
+    "prettier-plugin-tailwindcss": "^0.5.9",
+    "typescript": "^5"
+  }
+}

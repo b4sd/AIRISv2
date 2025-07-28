@@ -1,0 +1,26 @@
+{
+  "enabled": true,
+  "name": "Fix NPM Build",
+  "description": "Automatically diagnoses and fixes npm run build issues when package.json, tsconfig.json, or other build configuration files are modified",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "package.json",
+      "frontend/package.json",
+      "backend/package.json",
+      "shared/package.json",
+      "tsconfig.json",
+      "frontend/tsconfig.json",
+      "backend/tsconfig.json",
+      "shared/tsconfig.json",
+      "next.config.js",
+      "next.config.ts",
+      "frontend/next.config.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The user's npm run build is failing. Please analyze the build configuration files that were just modified and diagnose what might be causing the build to fail. Check for common issues like missing dependencies, TypeScript configuration problems, Next.js config issues, or package.json script problems. Provide specific fixes to resolve the npm run build issue."
+  }
+}
