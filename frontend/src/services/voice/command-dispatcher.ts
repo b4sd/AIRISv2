@@ -278,48 +278,33 @@ export class VoiceCommandDispatcher {
       throw new Error('Vui lòng mở một cuốn sách trước khi đọc.');
     }
 
-    try {
-      const { readingEngine } = await import(
-        '@/services/reading/reading-engine'
-      );
-      await readingEngine.startReading();
-    } catch (error) {
-      throw new Error(
-        `Không thể bắt đầu đọc: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
+    // Use the new TTS system
+    this.onTTSControl?.('start', { bookId: this.currentBookId });
+    this.announceToScreenReader('Bắt đầu đọc to nội dung.');
   }
 
   private handlePauseReading(): void {
-    import('@/services/reading/reading-engine').then(({ readingEngine }) => {
-      readingEngine.pauseReading();
-    });
+    this.onTTSControl?.('pause');
+    this.announceToScreenReader('Tạm dừng đọc.');
   }
 
   private handleResumeReading(): void {
-    import('@/services/reading/reading-engine').then(({ readingEngine }) => {
-      readingEngine.resumeReading();
-    });
+    this.onTTSControl?.('resume');
+    this.announceToScreenReader('Tiếp tục đọc.');
   }
 
   private handleAdjustSpeed(direction: string): void {
-    import('@/services/reading/reading-engine').then(({ readingEngine }) => {
-      const currentState = readingEngine.isReading();
-      if (currentState) {
-        const newRate = direction === 'faster' ? 1.5 : 0.8;
-        readingEngine.adjustSpeed(newRate);
-      } else {
-        const message =
-          direction === 'faster' ? 'Tăng tốc độ đọc.' : 'Giảm tốc độ đọc.';
-        this.announceToScreenReader(message);
-      }
-    });
+    const action = direction === 'faster' ? 'increaseSpeed' : 'decreaseSpeed';
+    this.onTTSControl?.(action);
+
+    const message =
+      direction === 'faster' ? 'Tăng tốc độ đọc.' : 'Giảm tốc độ đọc.';
+    this.announceToScreenReader(message);
   }
 
   private handleChangeVoice(): void {
-    import('@/services/reading/reading-engine').then(({ readingEngine }) => {
-      readingEngine.changeVoice();
-    });
+    this.onTTSControl?.('changeVoice');
+    this.announceToScreenReader('Chuyển đổi giọng đọc.');
   }
 
   // Note handlers

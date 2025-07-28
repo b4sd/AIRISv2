@@ -1,10 +1,14 @@
 import { config } from "@/config";
 import { createServer } from "@/server";
 import { logger } from "@/utils/logger";
+import { setupGracefulShutdown } from "@/utils/gracefulShutdown";
 
 async function start() {
   try {
     const server = await createServer();
+
+    // Setup graceful shutdown
+    setupGracefulShutdown(server);
 
     await server.listen({
       port: config.port,
@@ -16,21 +20,11 @@ async function start() {
     logger.info(
       `📖 API Documentation: http://${config.host}:${config.port}/docs`
     );
+    logger.info(`🔍 Health Check: http://${config.host}:${config.port}/health`);
   } catch (error) {
     logger.error("Failed to start server:", error);
     process.exit(1);
   }
 }
-
-// Handle graceful shutdown
-process.on("SIGTERM", async () => {
-  logger.info("SIGTERM received, shutting down gracefully");
-  process.exit(0);
-});
-
-process.on("SIGINT", async () => {
-  logger.info("SIGINT received, shutting down gracefully");
-  process.exit(0);
-});
 
 start();

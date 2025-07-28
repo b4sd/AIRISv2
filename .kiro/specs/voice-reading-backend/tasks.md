@@ -36,6 +36,8 @@ voice-reading-app/
 
 - [ ] 2. Core backend infrastructure and configuration
 
+
+
   - Initialize Fastify server with TypeScript and essential plugins
   - Set up environment configuration management
   - Configure logging with Winston and structured output

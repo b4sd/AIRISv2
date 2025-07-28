@@ -132,7 +132,7 @@ User Action → IndexedDB (immediate) → Background Sync → Cloud Storage
   - **TEST: Test various Vietnamese command patterns, verify intent recognition accuracy, test with different accents/speaking styles**
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 5.1, 5.2_
 
-- [ ] 8. Implement text-to-speech functionality
+- [x] 8. Implement text-to-speech functionality
 
   - Integrate Web Speech API SpeechSynthesis with Vietnamese voices
   - Create ReadingEngine service for TTS management
@@ -154,7 +154,7 @@ User Action → IndexedDB (immediate) → Background Sync → Cloud Storage
   - **TEST: Test complete voice workflows (open book → read → take notes), verify command execution feedback, test error recovery**
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 4.1_
 
-- [ ] 10. Create API client and backend integration layer
+- [x] 10. Create API client and backend integration layer
 
   - Create TypeScript API client for backend communication
   - Implement authentication flow with JWT token management

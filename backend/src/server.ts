@@ -1,6 +1,9 @@
 import Fastify from "fastify";
 import { config } from "@/config";
 import { logger } from "@/utils/logger";
+import { requestLogger } from "@/middleware/requestLogger";
+import { errorHandler } from "@/middleware/errorHandler";
+import { registerRoutes } from "@/routes";
 
 export async function createServer() {
   const server = Fastify({
@@ -17,7 +20,7 @@ export async function createServer() {
         : false,
   });
 
-  // Register plugins
+  // Register security plugins
   await server.register(import("@fastify/helmet"), {
     contentSecurityPolicy: false,
   });
@@ -30,7 +33,22 @@ export async function createServer() {
   await server.register(import("@fastify/rate-limit"), {
     max: config.rateLimit.max,
     timeWindow: config.rateLimit.window,
+    errorResponseBuilder: (request, context) => ({
+      success: false,
+      error: {
+        code: "RATE_LIMIT_EXCEEDED",
+        message: `Rate limit exceeded, retry in ${Math.round(
+          context.ttl / 1000
+        )} seconds`,
+        timestamp: new Date().toISOString(),
+        requestId: request.id,
+      },
+    }),
   });
+
+  // Register middleware
+  server.addHook("onRequest", requestLogger);
+  server.setErrorHandler(errorHandler);
 
   // Swagger documentation
   if (config.nodeEnv === "development") {
@@ -94,40 +112,8 @@ export async function createServer() {
     }
   );
 
-  // API routes will be registered here
-  await server.register(async function (server) {
-    server.get("/api/v1", async (request, reply) => {
-      return {
-        message: "Voice Reading App API v1",
-        version: "1.0.0",
-        documentation: config.nodeEnv === "development" ? "/docs" : undefined,
-      };
-    });
-  });
-
-  // Global error handler
-  server.setErrorHandler(async (error, request, reply) => {
-    logger.error("Request error:", {
-      error: error.message,
-      stack: error.stack,
-      url: request.url,
-      method: request.method,
-    });
-
-    const statusCode = error.statusCode || 500;
-    const message =
-      statusCode === 500 ? "Internal Server Error" : error.message;
-
-    return reply.status(statusCode).send({
-      success: false,
-      error: {
-        code: error.code || "INTERNAL_ERROR",
-        message,
-        timestamp: new Date().toISOString(),
-        requestId: request.id,
-      },
-    });
-  });
+  // Register API routes
+  await registerRoutes(server);
 
   return server;
 }
