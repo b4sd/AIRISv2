@@ -10,42 +10,55 @@ import {
   BookOpenIcon,
 } from '@heroicons/react/24/outline';
 import { TTSControls } from '@/components/reading/tts-controls';
+import { readingEngine } from '@/services/reading';
 
 interface ReadingPageProps {
   bookId: string;
 }
 
 export function ReadingPage({ bookId }: ReadingPageProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [showNotes, setShowNotes] = useState(false);
   const [book, setBook] = useState<any>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [loading, setLoading] = useState(true);
+  const [showNotes, setShowNotes] = useState(false);
 
   useEffect(() => {
-    loadBook();
-  }, [bookId]);
-
-  const loadBook = async () => {
-    try {
-      const { storageService } = await import('@/services/storage');
-      const loadedBook = await storageService.getBook(bookId);
-      
-      if (loadedBook) {
-        setBook(loadedBook);
-        setCurrentPage(loadedBook.lastReadPosition.page);
+    const init = async () => {
+      try {
+        const loadedBook = await readingEngine.loadBook(bookId);
+        if (loadedBook) {
+          setBook(loadedBook);
+          const pos = readingEngine.getCurrentPosition();
+          setCurrentPage(pos.page);
+        }
+      } catch (err) {
+        console.error('Failed to load book:', err);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Failed to load book:', error);
-    } finally {
-      setLoading(false);
+    };
+
+    init();
+
+    // subscribe to position changes
+    let unsub: (() => void) | undefined;
+    const maybeUnsub = readingEngine.onPositionChanged((pos) => {
+      setCurrentPage(pos.page);
+    });
+    if (typeof maybeUnsub === 'function') {
+      unsub = maybeUnsub;
     }
-  };
+
+    return () => {
+      if (unsub) unsub();
+    };
+  }, [bookId]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+          <div className="mx-auto mb-2 h-8 w-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
           <p className="text-gray-600 dark:text-gray-300">Đang tải sách...</p>
         </div>
       </div>
@@ -54,10 +67,10 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
 
   if (!book) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <BookOpenIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+          <BookOpenIcon className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+          <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-white">
             Không tìm thấy sách
           </h3>
           <p className="text-gray-600 dark:text-gray-300">
@@ -68,18 +81,19 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
     );
   }
 
-  const currentChapter = book.content.chapters.find((ch: any) => 
-    currentPage >= ch.startPage && currentPage <= ch.endPage
+  const currentChapter = book.content.chapters.find(
+    (ch: any) => currentPage >= ch.startPage && currentPage <= ch.endPage
   );
-
-  const content = currentChapter ? currentChapter.content : 'Không có nội dung để hiển thị.';
+  const content = currentChapter
+    ? currentChapter.content
+    : 'Không có nội dung để hiển thị.';
 
   return (
     <div className="flex h-full">
       {/* Main Reading Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex flex-1 flex-col">
         {/* Book Header */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+        <div className="border-b border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -89,18 +103,18 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
                 {book.author} • {book.currentChapter}
               </p>
             </div>
-            
+
             <div className="flex items-center space-x-2">
-              <button className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+              <button className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
                 <BookmarkIcon className="h-5 w-5" />
               </button>
-              
+
               <button
                 onClick={() => setShowNotes(!showNotes)}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`rounded-lg p-2 transition-colors ${
                   showNotes
-                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
+                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                 }`}
               >
                 <DocumentTextIcon className="h-5 w-5" />
@@ -110,13 +124,13 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
         </div>
 
         {/* TTS Controls */}
-        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="border-b border-gray-200 px-4 py-2 dark:border-gray-700">
           <TTSControls bookId={bookId} />
         </div>
 
         {/* Reading Content */}
         <div className="flex-1 overflow-auto">
-          <div className="max-w-4xl mx-auto p-8">
+          <div className="mx-auto max-w-4xl p-8">
             <div className="prose prose-lg dark:prose-invert max-w-none">
               <div className="whitespace-pre-line leading-relaxed">
                 {content}
@@ -126,14 +140,16 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
         </div>
 
         {/* Navigation Controls */}
-        <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
+        <div className="border-t border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              onClick={() =>
+                readingEngine.navigateToPage(Math.max(1, currentPage - 1))
+              }
               disabled={currentPage === 1}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             >
-              <ChevronLeftIcon className="h-4 w-4 mr-1" />
+              <ChevronLeftIcon className="mr-1 h-4 w-4" />
               Trang trước
             </button>
 
@@ -141,22 +157,28 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
               <span className="text-sm text-gray-600 dark:text-gray-300">
                 Trang {currentPage} / {book.content.totalPages}
               </span>
-              
-              <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+
+              <div className="h-2 w-32 rounded-full bg-gray-200 dark:bg-gray-700">
                 <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(currentPage / book.content.totalPages) * 100}%` }}
+                  className="h-2 rounded-full bg-blue-600 transition-all duration-300"
+                  style={{
+                    width: `${(currentPage / book.content.totalPages) * 100}%`,
+                  }}
                 />
               </div>
             </div>
 
             <button
-              onClick={() => setCurrentPage(Math.min(book.content.totalPages, currentPage + 1))}
+              onClick={() =>
+                readingEngine.navigateToPage(
+                  Math.min(book.content.totalPages, currentPage + 1)
+                )
+              }
               disabled={currentPage === book.content.totalPages}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             >
               Trang sau
-              <ChevronRightIcon className="h-4 w-4 ml-1" />
+              <ChevronRightIcon className="ml-1 h-4 w-4" />
             </button>
           </div>
         </div>
@@ -164,28 +186,26 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
 
       {/* Notes Panel */}
       {showNotes && (
-        <div className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex w-80 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          <div className="border-b border-gray-200 p-4 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Ghi chú
             </h3>
           </div>
-          
+
           <div className="flex-1 p-4">
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              <DocumentTextIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">
-                Chưa có ghi chú nào cho trang này
-              </p>
-              <p className="text-xs mt-1">
+            <div className="py-8 text-center text-gray-500 dark:text-gray-400">
+              <DocumentTextIcon className="mx-auto mb-3 h-12 w-12 opacity-50" />
+              <p className="text-sm">Chưa có ghi chú nào cho trang này</p>
+              <p className="mt-1 text-xs">
                 Nói "Ghi chú: [nội dung]" để tạo ghi chú
               </p>
             </div>
           </div>
-          
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <button className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              <ChatBubbleLeftRightIcon className="h-4 w-4 mr-2" />
+
+          <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+            <button className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700">
+              <ChatBubbleLeftRightIcon className="mr-2 h-4 w-4" />
               Thêm ghi chú
             </button>
           </div>

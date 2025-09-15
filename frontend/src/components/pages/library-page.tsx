@@ -131,6 +131,69 @@ Chúng ta có thể sử dụng các lệnh giọng nói như "Đọc to cho tô
 
 Bạn có thể nói "Tạm dừng đọc" để dừng lại, "Tiếp tục đọc" để tiếp tục, hoặc "Đọc nhanh hơn" để tăng tốc độ.
 
+Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" để chọn giọng đọc khác, hoặc "Dừng đọc" để dừng hoàn toàn.
+Đây là nội dung test để thử nghiệm tính năng đọc văn bản bằng giọng nói. 
+            
+Chúng ta có thể sử dụng các lệnh giọng nói như "Đọc to cho tôi nghe" để bắt đầu đọc. 
+
+Ứng dụng này được thiết kế đặc biệt cho người khiếm thị, với đầy đủ tính năng hỗ trợ tiếp cận.
+
+Bạn có thể nói "Tạm dừng đọc" để dừng lại, "Tiếp tục đọc" để tiếp tục, hoặc "Đọc nhanh hơn" để tăng tốc độ.
+
+Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" để chọn giọng đọc khác, hoặc "Dừng đọc" để dừng hoàn toàn.
+Đây là nội dung test để thử nghiệm tính năng đọc văn bản bằng giọng nói. 
+            
+Chúng ta có thể sử dụng các lệnh giọng nói như "Đọc to cho tôi nghe" để bắt đầu đọc. 
+
+Ứng dụng này được thiết kế đặc biệt cho người khiếm thị, với đầy đủ tính năng hỗ trợ tiếp cận.
+
+Bạn có thể nói "Tạm dừng đọc" để dừng lại, "Tiếp tục đọc" để tiếp tục, hoặc "Đọc nhanh hơn" để tăng tốc độ.
+
+Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" để chọn giọng đọc khác, hoặc "Dừng đọc" để dừng hoàn toàn.
+Đây là nội dung test để thử nghiệm tính năng đọc văn bản bằng giọng nói. 
+            
+Chúng ta có thể sử dụng các lệnh giọng nói như "Đọc to cho tôi nghe" để bắt đầu đọc. 
+
+Ứng dụng này được thiết kế đặc biệt cho người khiếm thị, với đầy đủ tính năng hỗ trợ tiếp cận.
+
+Bạn có thể nói "Tạm dừng đọc" để dừng lại, "Tiếp tục đọc" để tiếp tục, hoặc "Đọc nhanh hơn" để tăng tốc độ.
+
+Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" để chọn giọng đọc khác, hoặc "Dừng đọc" để dừng hoàn toàn.
+Đây là nội dung test để thử nghiệm tính năng đọc văn bản bằng giọng nói. 
+            
+Chúng ta có thể sử dụng các lệnh giọng nói như "Đọc to cho tôi nghe" để bắt đầu đọc. 
+
+Ứng dụng này được thiết kế đặc biệt cho người khiếm thị, với đầy đủ tính năng hỗ trợ tiếp cận.
+
+Bạn có thể nói "Tạm dừng đọc" để dừng lại, "Tiếp tục đọc" để tiếp tục, hoặc "Đọc nhanh hơn" để tăng tốc độ.
+
+Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" để chọn giọng đọc khác, hoặc "Dừng đọc" để dừng hoàn toàn.
+Đây là nội dung test để thử nghiệm tính năng đọc văn bản bằng giọng nói. 
+            
+Chúng ta có thể sử dụng các lệnh giọng nói như "Đọc to cho tôi nghe" để bắt đầu đọc. 
+
+Ứng dụng này được thiết kế đặc biệt cho người khiếm thị, với đầy đủ tính năng hỗ trợ tiếp cận.
+
+Bạn có thể nói "Tạm dừng đọc" để dừng lại, "Tiếp tục đọc" để tiếp tục, hoặc "Đọc nhanh hơn" để tăng tốc độ.
+
+Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" để chọn giọng đọc khác, hoặc "Dừng đọc" để dừng hoàn toàn.
+Đây là nội dung test để thử nghiệm tính năng đọc văn bản bằng giọng nói. 
+            
+Chúng ta có thể sử dụng các lệnh giọng nói như "Đọc to cho tôi nghe" để bắt đầu đọc. 
+
+Ứng dụng này được thiết kế đặc biệt cho người khiếm thị, với đầy đủ tính năng hỗ trợ tiếp cận.
+
+Bạn có thể nói "Tạm dừng đọc" để dừng lại, "Tiếp tục đọc" để tiếp tục, hoặc "Đọc nhanh hơn" để tăng tốc độ.
+
+Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" để chọn giọng đọc khác, hoặc "Dừng đọc" để dừng hoàn toàn.
+Đây là nội dung test để thử nghiệm tính năng đọc văn bản bằng giọng nói. 
+            
+Chúng ta có thể sử dụng các lệnh giọng nói như "Đọc to cho tôi nghe" để bắt đầu đọc. 
+
+Ứng dụng này được thiết kế đặc biệt cho người khiếm thị, với đầy đủ tính năng hỗ trợ tiếp cận.
+
+Bạn có thể nói "Tạm dừng đọc" để dừng lại, "Tiếp tục đọc" để tiếp tục, hoặc "Đọc nhanh hơn" để tăng tốc độ.
+
 Hãy thử các lệnh giọng nói khác như "Thay đổi giọng đọc" để chọn giọng đọc khác, hoặc "Dừng đọc" để dừng hoàn toàn.`,
               startPage: 1,
               endPage: 1,
