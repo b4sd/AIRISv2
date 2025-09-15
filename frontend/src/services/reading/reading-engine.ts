@@ -368,8 +368,15 @@ export class ReadingEngineService implements IReadingEngine {
   // Event listeners
   public onPositionChanged(
     callback: (position: ReadingPosition) => void
-  ): void {
+  ): () => void {
     this.onPositionChange = callback;
+
+    // ✅ return cleanup function
+    return () => {
+      if (this.onPositionChange === callback) {
+        this.onPositionChange = undefined;
+      }
+    };
   }
 
   public onBookChanged(callback: (book: Book | null) => void): void {
@@ -424,6 +431,79 @@ export class ReadingEngineService implements IReadingEngine {
       }
     }, 1000);
   }
+
+  /**
+   * Start TTS from a specific character position on a given page.
+   * @param page Page number (1-based)
+   * @param charOffset Character offset within the page
+   */
+  /**
+   * Start TTS from a specific character position on a given page.
+   * Uses the same textToSpeech service so state stays in sync.
+   * @param page Page number (1-based)
+   * @param charOffset Character offset within the page
+   */
+  public async startTTSFromChar(
+    page: number,
+    charOffset: number
+  ): Promise<void> {
+    if (!this.currentBook) {
+      throw new Error('Chưa có sách nào được mở');
+    }
+
+    const totalPages = this.currentBook.content.totalPages;
+    if (page < 1 || page > totalPages) {
+      throw new Error(`Số trang không hợp lệ. Sách có ${totalPages} trang.`);
+    }
+
+    const chapter = this.findChapterByPage(page);
+    if (!chapter) {
+      throw new Error('Không tìm thấy chương cho trang này');
+    }
+
+    // ⚠️ FIX: get *page* content instead of entire chapter
+    const fullContent = this.getCurrentPageContent();
+    if (charOffset < 0 || charOffset >= fullContent.length) {
+      throw new Error('Vị trí ký tự không hợp lệ');
+    }
+
+    // Update reading position
+    this.currentPosition = {
+      page,
+      chapter: chapter.title,
+      characterOffset: charOffset,
+      percentage: Math.round((page / totalPages) * 100),
+    };
+
+    await this.savePosition();
+    this.onPositionChange?.(this.currentPosition);
+
+    // Extract substring from offset
+    const remainingContent = fullContent.substring(charOffset);
+    if (!remainingContent.trim()) {
+      this.announceToScreenReader('Không có nội dung để đọc từ vị trí này');
+      return;
+    }
+
+    try {
+      // ✅ Use the same TTS service for consistency
+      await textToSpeech.speak(remainingContent);
+      this.announceToScreenReader('Bắt đầu đọc từ vị trí đã chọn');
+    } catch (error) {
+      console.error('Failed to start TTS from char:', error);
+      throw new Error(
+        `Không thể bắt đầu đọc: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
+
+  /**
+   * Start TTS from a specific character position on a given page.
+   * @param page Page number (1-based)
+   * @param charPosition Character offset within the page
+   */
 
   // Cleanup
   public destroy(): void {

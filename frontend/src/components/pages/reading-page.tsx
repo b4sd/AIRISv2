@@ -19,8 +19,14 @@ interface ReadingPageProps {
 export function ReadingPage({ bookId }: ReadingPageProps) {
   const [book, setBook] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [charPosition, setCharPosition] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
+
+  // Reset character position only when book changes (not on every page scroll)
+  useEffect(() => {
+    setCharPosition(0);
+  }, [book?.content?.chapters]);
 
   useEffect(() => {
     const init = async () => {
@@ -40,13 +46,13 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
 
     init();
 
-    // subscribe to position changes
     let unsub: (() => void) | undefined;
-    const maybeUnsub = readingEngine.onPositionChanged((pos) => {
-      setCurrentPage(pos.page);
-    });
-    if (typeof maybeUnsub === 'function') {
-      unsub = maybeUnsub;
+
+    if (readingEngine.onPositionChanged) {
+      unsub = readingEngine.onPositionChanged((pos) => {
+        setCurrentPage(pos.page);
+        setCharPosition(pos.characterOffset ?? 0);
+      });
     }
 
     return () => {
@@ -89,96 +95,90 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
     : 'Không có nội dung để hiển thị.';
 
   return (
-    <div className="flex h-full">
-      {/* Main Reading Area */}
-      <div className="flex flex-1 flex-col">
-        {/* Book Header */}
-        <div className="border-b border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                {book.title}
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                {book.author} • {book.currentChapter}
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <button className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
-                <BookmarkIcon className="h-5 w-5" />
-              </button>
-
-              <button
-                onClick={() => setShowNotes(!showNotes)}
-                className={`rounded-lg p-2 transition-colors ${
-                  showNotes
-                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
-                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
-                }`}
-              >
-                <DocumentTextIcon className="h-5 w-5" />
-              </button>
-            </div>
+    <div className="flex h-full flex-col">
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="mx-auto max-w-4xl p-8">
+          <div className="prose prose-lg dark:prose-invert max-w-none">
+            <div className="whitespace-pre-line leading-relaxed">{content}</div>
           </div>
         </div>
+      </div>
 
-        {/* TTS Controls */}
-        <div className="border-b border-gray-200 px-4 py-2 dark:border-gray-700">
-          <TTSControls bookId={bookId} />
-        </div>
-
-        {/* Reading Content */}
-        <div className="flex-1 overflow-auto">
-          <div className="mx-auto max-w-4xl p-8">
-            <div className="prose prose-lg dark:prose-invert max-w-none">
-              <div className="whitespace-pre-line leading-relaxed">
-                {content}
-              </div>
-            </div>
+      {/* Spotify-style bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white px-6 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex items-center justify-between">
+          {/* Left: Book info */}
+          <div className="hidden min-w-[180px] flex-col md:flex">
+            <span className="truncate text-sm font-medium text-gray-900 dark:text-white">
+              {book.title}
+            </span>
+            <span className="truncate text-xs text-gray-600 dark:text-gray-300">
+              {book.author} • {book.currentChapter}
+            </span>
           </div>
-        </div>
 
-        {/* Navigation Controls */}
-        <div className="border-t border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() =>
-                readingEngine.navigateToPage(Math.max(1, currentPage - 1))
-              }
-              disabled={currentPage === 1}
-              className="flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-            >
-              <ChevronLeftIcon className="mr-1 h-4 w-4" />
-              Trang trước
-            </button>
+          {/* Center: TTS Controls */}
+          <div className="flex flex-1 flex-col items-center space-y-2 px-4">
+            <TTSControls
+              bookId={bookId}
+              currentPage={currentPage}
+              totalPages={book.content.totalPages}
+              contentLength={content.length}
+            />
 
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 dark:text-gray-300">
-                Trang {currentPage} / {book.content.totalPages}
+            {/* Page progress */}
+            <div className="flex w-full max-w-xl items-center space-x-2">
+              <span className="text-xs text-gray-500">{currentPage}</span>
+              <input
+                type="range"
+                min={1}
+                max={book.content.totalPages}
+                value={currentPage}
+                onChange={(e) => {
+                  const page = Number(e.target.value);
+                  setCurrentPage(page);
+                  readingEngine.navigateToPage(page);
+                }}
+                className="w-full accent-blue-600"
+              />
+              <span className="text-xs text-gray-500">
+                {book.content.totalPages}
               </span>
-
-              <div className="h-2 w-32 rounded-full bg-gray-200 dark:bg-gray-700">
-                <div
-                  className="h-2 rounded-full bg-blue-600 transition-all duration-300"
-                  style={{
-                    width: `${(currentPage / book.content.totalPages) * 100}%`,
-                  }}
-                />
-              </div>
             </div>
 
+            {/* Character seek */}
+            <div className="flex w-full max-w-xl items-center space-x-2">
+              <span className="text-xs text-gray-500">{charPosition}</span>
+              <input
+                type="range"
+                min={0}
+                max={content.length}
+                value={charPosition}
+                onChange={(e) => {
+                  const newPos = parseInt(e.target.value, 10);
+                  setCharPosition(newPos);
+                  if (readingEngine.startTTSFromChar) {
+                    readingEngine.startTTSFromChar(currentPage, newPos);
+                  }
+                }}
+                className="w-full accent-blue-600"
+              />
+              <span className="text-xs text-gray-500">{content.length}</span>
+            </div>
+          </div>
+
+          {/* Right: Notes toggle */}
+          <div className="flex items-center space-x-2">
             <button
-              onClick={() =>
-                readingEngine.navigateToPage(
-                  Math.min(book.content.totalPages, currentPage + 1)
-                )
-              }
-              disabled={currentPage === book.content.totalPages}
-              className="flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              onClick={() => setShowNotes(!showNotes)}
+              className={`rounded-lg p-2 transition-colors ${
+                showNotes
+                  ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400'
+                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
+              }`}
             >
-              Trang sau
-              <ChevronRightIcon className="ml-1 h-4 w-4" />
+              <DocumentTextIcon className="h-5 w-5" />
             </button>
           </div>
         </div>
@@ -186,23 +186,18 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
 
       {/* Notes Panel */}
       {showNotes && (
-        <div className="flex w-80 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <div className="fixed bottom-16 right-0 top-0 w-80 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           <div className="border-b border-gray-200 p-4 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               Ghi chú
             </h3>
           </div>
-
-          <div className="flex-1 p-4">
+          <div className="flex-1 overflow-auto p-4">
             <div className="py-8 text-center text-gray-500 dark:text-gray-400">
               <DocumentTextIcon className="mx-auto mb-3 h-12 w-12 opacity-50" />
               <p className="text-sm">Chưa có ghi chú nào cho trang này</p>
-              <p className="mt-1 text-xs">
-                Nói "Ghi chú: [nội dung]" để tạo ghi chú
-              </p>
             </div>
           </div>
-
           <div className="border-t border-gray-200 p-4 dark:border-gray-700">
             <button className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700">
               <ChatBubbleLeftRightIcon className="mr-2 h-4 w-4" />

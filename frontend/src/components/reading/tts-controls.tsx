@@ -9,6 +9,8 @@ import {
   SpeakerXMarkIcon,
   ForwardIcon,
   BackwardIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 import { useVoice } from '@/components/providers/voice-provider';
 import { textToSpeech } from '@/services/voice/text-to-speech';
@@ -17,24 +19,34 @@ import { cn } from '@/lib/utils';
 
 interface TTSControlsProps {
   bookId?: string;
+  currentPage?: number;
+  totalPages?: number;
+  contentLength?: number;
   className?: string;
 }
 
-export function TTSControls({ bookId, className }: TTSControlsProps) {
+export function TTSControls({
+  bookId,
+  currentPage = 1,
+  totalPages = 1,
+  contentLength = 0,
+  className,
+}: TTSControlsProps) {
   const { synthesis } = useVoice();
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [availableVoices, setAvailableVoices] = useState<
+    SpeechSynthesisVoice[]
+  >([]);
   const [currentVoiceIndex, setCurrentVoiceIndex] = useState(0);
+  const [charPosition, setCharPosition] = useState(0);
 
   useEffect(() => {
-    // Load available voices
     const loadVoices = () => {
       const voices = textToSpeech.getAvailableVoices();
       setAvailableVoices(voices);
-      
-      // Prioritize Vietnamese voices
+
       const vietnameseVoices = textToSpeech.getVietnameseVoices();
       if (vietnameseVoices.length > 0) {
-        const currentVoice = voices.find(v => v.name === synthesis.voice);
+        const currentVoice = voices.find((v) => v.name === synthesis.voice);
         if (currentVoice) {
           setCurrentVoiceIndex(voices.indexOf(currentVoice));
         }
@@ -42,8 +54,7 @@ export function TTSControls({ bookId, className }: TTSControlsProps) {
     };
 
     loadVoices();
-    
-    // Listen for voice changes
+
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
       return () => {
@@ -86,168 +97,119 @@ export function TTSControls({ bookId, className }: TTSControlsProps) {
     readingEngine.changeVoice();
   };
 
-  const getPlayPauseIcon = () => {
-    if (synthesis.isReading && !synthesis.isPaused) {
-      return PauseIcon;
+  const handleSeek = (value: number) => {
+    setCharPosition(value);
+    if (readingEngine.startTTSFromChar) {
+      readingEngine.startTTSFromChar(currentPage, value);
     }
-    return PlayIcon;
   };
 
-  const getPlayPauseLabel = () => {
-    if (synthesis.isReading && !synthesis.isPaused) {
-      return 'Tạm dừng đọc';
-    }
-    if (synthesis.isPaused) {
-      return 'Tiếp tục đọc';
-    }
-    return 'Bắt đầu đọc';
-  };
-
-  const PlayPauseIcon = getPlayPauseIcon();
+  const PlayPauseIcon =
+    synthesis.isReading && !synthesis.isPaused ? PauseIcon : PlayIcon;
 
   return (
-    <div 
+    <div
       className={cn(
-        'flex items-center space-x-2 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700',
+        'fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white px-6 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-800',
         className
       )}
       role="toolbar"
-      aria-label="Điều khiển đọc văn bản"
+      aria-label="Thanh điều khiển đọc văn bản"
     >
-      {/* Play/Pause Button */}
-      <button
-        onClick={handlePlayPause}
-        disabled={!bookId}
-        className={cn(
-          'flex items-center justify-center w-12 h-12 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
-          synthesis.isReading && !synthesis.isPaused
-            ? 'bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-800'
-            : 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800',
-          !bookId && 'opacity-50 cursor-not-allowed'
-        )}
-        aria-label={getPlayPauseLabel()}
-        title={getPlayPauseLabel()}
-      >
-        <PlayPauseIcon className="h-6 w-6" aria-hidden="true" />
-      </button>
+      <div className="flex flex-col space-y-2">
+        {/* Controls */}
+        <div className="flex items-center justify-center space-x-4">
+          {/* Previous Page */}
+          <button
+            onClick={() =>
+              readingEngine.navigateToPage(Math.max(1, currentPage - 1))
+            }
+            disabled={currentPage === 1}
+            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-700"
+          >
+            <ChevronLeftIcon className="h-6 w-6" />
+          </button>
 
-      {/* Stop Button */}
-      <button
-        onClick={handleStop}
-        disabled={!synthesis.isReading}
-        className={cn(
-          'flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
-          !synthesis.isReading && 'opacity-50 cursor-not-allowed'
-        )}
-        aria-label="Dừng đọc"
-        title="Dừng đọc"
-      >
-        <StopIcon className="h-5 w-5" aria-hidden="true" />
-      </button>
+          {/* Play / Pause */}
+          <button
+            onClick={handlePlayPause}
+            disabled={!bookId}
+            className={cn(
+              'flex h-12 w-12 items-center justify-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
+              synthesis.isReading && !synthesis.isPaused
+                ? 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900 dark:text-red-400 dark:hover:bg-red-800'
+                : 'bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-400 dark:hover:bg-blue-800',
+              !bookId && 'cursor-not-allowed opacity-50'
+            )}
+          >
+            <PlayPauseIcon className="h-6 w-6" />
+          </button>
 
-      {/* Speed Controls */}
-      <div className="flex items-center space-x-1">
-        <button
-          onClick={() => handleSpeedChange(-0.25)}
-          disabled={synthesis.rate <= 0.1}
-          className={cn(
-            'flex items-center justify-center w-8 h-8 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
-            synthesis.rate <= 0.1 && 'opacity-50 cursor-not-allowed'
-          )}
-          aria-label="Giảm tốc độ đọc"
-          title="Giảm tốc độ đọc"
-        >
-          <BackwardIcon className="h-4 w-4" aria-hidden="true" />
-        </button>
-        
-        <div 
-          className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[3rem] text-center"
-          aria-label={`Tốc độ đọc: ${synthesis.rate.toFixed(1)}x`}
-        >
-          {synthesis.rate.toFixed(1)}x
-        </div>
-        
-        <button
-          onClick={() => handleSpeedChange(0.25)}
-          disabled={synthesis.rate >= 3.0}
-          className={cn(
-            'flex items-center justify-center w-8 h-8 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
-            synthesis.rate >= 3.0 && 'opacity-50 cursor-not-allowed'
-          )}
-          aria-label="Tăng tốc độ đọc"
-          title="Tăng tốc độ đọc"
-        >
-          <ForwardIcon className="h-4 w-4" aria-hidden="true" />
-        </button>
-      </div>
+          {/* Next Page */}
+          <button
+            onClick={() =>
+              readingEngine.navigateToPage(
+                Math.min(totalPages, currentPage + 1)
+              )
+            }
+            disabled={currentPage === totalPages}
+            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-300 dark:hover:bg-gray-700"
+          >
+            <ChevronRightIcon className="h-6 w-6" />
+          </button>
 
-      {/* Volume Controls */}
-      <div className="flex items-center space-x-1">
-        <button
-          onClick={() => handleVolumeChange(-0.1)}
-          disabled={synthesis.volume <= 0}
-          className={cn(
-            'flex items-center justify-center w-8 h-8 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
-            synthesis.volume <= 0 && 'opacity-50 cursor-not-allowed'
-          )}
-          aria-label="Giảm âm lượng"
-          title="Giảm âm lượng"
-        >
-          <SpeakerXMarkIcon className="h-4 w-4" aria-hidden="true" />
-        </button>
-        
-        <div 
-          className="px-2 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[3rem] text-center"
-          aria-label={`Âm lượng: ${Math.round(synthesis.volume * 100)}%`}
-        >
-          {Math.round(synthesis.volume * 100)}%
-        </div>
-        
-        <button
-          onClick={() => handleVolumeChange(0.1)}
-          disabled={synthesis.volume >= 1}
-          className={cn(
-            'flex items-center justify-center w-8 h-8 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
-            synthesis.volume >= 1 && 'opacity-50 cursor-not-allowed'
-          )}
-          aria-label="Tăng âm lượng"
-          title="Tăng âm lượng"
-        >
-          <SpeakerWaveIcon className="h-4 w-4" aria-hidden="true" />
-        </button>
-      </div>
-
-      {/* Voice Selection */}
-      <button
-        onClick={handleVoiceChange}
-        disabled={availableVoices.length <= 1}
-        className={cn(
-          'px-3 py-2 text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500',
-          availableVoices.length <= 1 && 'opacity-50 cursor-not-allowed'
-        )}
-        aria-label="Thay đổi giọng đọc"
-        title={`Giọng hiện tại: ${synthesis.voice || 'Mặc định'}`}
-      >
-        Giọng đọc
-      </button>
-
-      {/* Reading Status */}
-      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-        {synthesis.isReading && (
+          {/* Speed Control */}
           <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" aria-hidden="true" />
-            <span className="sr-only">Đang đọc</span>
-            <span aria-live="polite">
-              {synthesis.isPaused ? 'Đã tạm dừng' : 'Đang đọc'}
-            </span>
+            <button
+              onClick={() => handleSpeedChange(-0.25)}
+              className="px-2 py-1"
+            >
+              -
+            </button>
+            <span className="text-sm">{synthesis.rate.toFixed(1)}x</span>
+            <button
+              onClick={() => handleSpeedChange(0.25)}
+              className="px-2 py-1"
+            >
+              +
+            </button>
           </div>
-        )}
-      </div>
 
-      {/* Screen reader instructions */}
-      <div className="sr-only" aria-live="polite">
-        Sử dụng các nút điều khiển để phát, tạm dừng, điều chỉnh tốc độ và âm lượng đọc. 
-        Hoặc sử dụng lệnh giọng nói: "Đọc to", "Tạm dừng", "Tiếp tục", "Đọc nhanh hơn", "Đọc chậm hơn".
+          {/* Volume */}
+          <div className="flex items-center space-x-1">
+            <button onClick={() => handleVolumeChange(-0.1)}>
+              <SpeakerXMarkIcon className="h-5 w-5" />
+            </button>
+            <span className="text-sm">
+              {Math.round(synthesis.volume * 100)}%
+            </span>
+            <button onClick={() => handleVolumeChange(0.1)}>
+              <SpeakerWaveIcon className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Voice Selection */}
+          <button
+            onClick={handleVoiceChange}
+            className="rounded bg-gray-100 px-3 py-1 text-sm dark:bg-gray-700"
+          >
+            Giọng đọc
+          </button>
+        </div>
+
+        {/* Seek Bar */}
+        <div className="flex items-center space-x-4">
+          <span className="text-xs text-gray-500">{charPosition}</span>
+          <input
+            type="range"
+            min={0}
+            max={contentLength}
+            value={charPosition}
+            onChange={(e) => handleSeek(Number(e.target.value))}
+            className="w-full accent-blue-600"
+          />
+          <span className="text-xs text-gray-500">{contentLength}</span>
+        </div>
       </div>
     </div>
   );
