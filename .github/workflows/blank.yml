@@ -2,11 +2,9 @@ name: Frontend CI
 
 on:
   push:
-    branches:
-      - "**"   # run on any branch
+    branches: ["**"]
   pull_request:
-    branches:
-      - "**"   # run for PRs from any branch
+    branches: ["**"]
   workflow_dispatch:
 
 jobs:
@@ -17,28 +15,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Setup Node.js with optional caching
-      - name: Setup Node.js (with cache if lockfile exists)
-        id: setup-node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          # only use cache if package-lock.json exists
-          cache-dependency-path: |
-            frontend/package-lock.json
 
-      # Install dependencies
+      # Install deps (npm ci if lockfile exists, else npm install)
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci || npm install
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
-      # Build frontend
       - name: Build frontend
         working-directory: ./frontend
         run: npm run build
 
-      # Optional: Run tests
       - name: Run tests
         working-directory: ./frontend
         run: npm test || echo "No tests found"
