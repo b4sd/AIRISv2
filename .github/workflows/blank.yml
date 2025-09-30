@@ -1,0 +1,42 @@
+name: Frontend CI
+
+on:
+  push:
+    branches:
+      - "**"   # run on any branch
+  pull_request:
+    branches:
+      - "**"   # run for PRs from any branch
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup Node.js (adjust version if needed)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      # Install dependencies
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      # Build the frontend
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      # (Optional) Run tests
+      - name: Run tests
+        working-directory: ./frontend
+        run: npm test
