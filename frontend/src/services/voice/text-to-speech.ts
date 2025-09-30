@@ -223,16 +223,6 @@ export class TextToSpeechService {
       this.announceToScreenReader('Tiếp tục đọc.');
     };
 
-    // Track reading position (approximate)
-    // this.currentUtterance.onboundary = (event) => {
-    //   if (event.name === 'word' || event.name === 'sentence') {
-    //     const position = event.charIndex || 0;
-    //     this.updateState({ currentPosition: position });
-    //     this.onPositionChange?.(position, text);
-    //     options?.onBoundary?.(position);
-    //   }
-    // };
-
     // Start speaking
     try {
       this.synthesis.speak(this.currentUtterance);
