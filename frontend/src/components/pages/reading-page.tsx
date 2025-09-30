@@ -126,46 +126,6 @@ export function ReadingPage({ bookId }: ReadingPageProps) {
               totalPages={book.content.totalPages}
               contentLength={content.length}
             />
-
-            {/* Page progress */}
-            <div className="flex w-full max-w-xl items-center space-x-2">
-              <span className="text-xs text-gray-500">{currentPage}</span>
-              <input
-                type="range"
-                min={1}
-                max={book.content.totalPages}
-                value={currentPage}
-                onChange={(e) => {
-                  const page = Number(e.target.value);
-                  setCurrentPage(page);
-                  readingEngine.navigateToPage(page);
-                }}
-                className="w-full accent-blue-600"
-              />
-              <span className="text-xs text-gray-500">
-                {book.content.totalPages}
-              </span>
-            </div>
-
-            {/* Character seek */}
-            <div className="flex w-full max-w-xl items-center space-x-2">
-              <span className="text-xs text-gray-500">{charPosition}</span>
-              <input
-                type="range"
-                min={0}
-                max={content.length}
-                value={charPosition}
-                onChange={(e) => {
-                  const newPos = parseInt(e.target.value, 10);
-                  setCharPosition(newPos);
-                  if (readingEngine.startTTSFromChar) {
-                    readingEngine.startTTSFromChar(currentPage, newPos);
-                  }
-                }}
-                className="w-full accent-blue-600"
-              />
-              <span className="text-xs text-gray-500">{content.length}</span>
-            </div>
           </div>
 
           {/* Right: Notes toggle */}

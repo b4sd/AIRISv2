@@ -121,7 +121,7 @@ export const VoiceUtils = {
       'mười bảy': 17,
       'mười tám': 18,
       'mười chín': 19,
-      'hai mười': 20,
+      'hai mươi': 20,
     };
 
     // Extract digit numbers

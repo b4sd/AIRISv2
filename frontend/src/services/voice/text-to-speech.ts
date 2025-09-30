@@ -1,6 +1,8 @@
 'use client';
 
 import { SpeechSynthesisState } from '@/types';
+import { text } from 'stream/consumers';
+import { th } from 'zod/v4/locales';
 
 export class TextToSpeechService {
   private synthesis: SpeechSynthesis | null = null;
@@ -25,6 +27,7 @@ export class TextToSpeechService {
   private onPositionChange?: (position: number, text: string) => void;
   private onError?: (error: string) => void;
   private onComplete?: () => void;
+  private progressTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
     this.initialize();
@@ -55,6 +58,36 @@ export class TextToSpeechService {
     // Announce TTS is ready
     this.announceToScreenReader('Hệ thống đọc văn bản đã sẵn sàng.');
   }
+
+  private startProgressTimer(text: string): void {
+    if (this.progressTimer) return;
+
+    const words = text.split(/\s+/).length;
+    const estimateDuration = (text.length / (this.state.rate * 10) * 1000);
+
+    const startTime = Date.now();
+
+    this.progressTimer = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / estimateDuration, 1);
+      const position = Math.floor(progress * text.length);
+
+      this.updateState({ currentPosition: position });
+      this.onPositionChange?.(position, text);
+
+      // debug
+      // console.log(`TTS progress: ${position}/${text.length} (${Math.round(progress * 100)}%)`);
+    }, 200);
+  }
+
+  private stopProgressTimer(): void {
+    if (this.progressTimer) {
+      clearInterval(this.progressTimer);
+      this.progressTimer = null;
+    }
+  }
+
+    
 
   private loadVoices(): void {
     if (!this.synthesis) return;
@@ -139,11 +172,13 @@ export class TextToSpeechService {
 
     // Set up event handlers
     this.currentUtterance.onstart = () => {
+      // this.startProgressTimer(text);
       this.updateState({ isReading: true, isPaused: false });
       this.announceToScreenReader('Bắt đầu đọc văn bản.');
     };
 
     this.currentUtterance.onend = () => {
+      // this.stopProgressTimer();
       this.updateState({
         isReading: false,
         isPaused: false,
@@ -177,24 +212,26 @@ export class TextToSpeechService {
     };
 
     this.currentUtterance.onpause = () => {
+      // this.stopProgressTimer();
       this.updateState({ isPaused: true });
       this.announceToScreenReader('Đã tạm dừng đọc.');
     };
 
     this.currentUtterance.onresume = () => {
+      // this.startProgressTimer(text);
       this.updateState({ isPaused: false });
       this.announceToScreenReader('Tiếp tục đọc.');
     };
 
     // Track reading position (approximate)
-    this.currentUtterance.onboundary = (event) => {
-      if (event.name === 'word' || event.name === 'sentence') {
-        const position = event.charIndex || 0;
-        this.updateState({ currentPosition: position });
-        this.onPositionChange?.(position, text);
-        options?.onBoundary?.(position);
-      }
-    };
+    // this.currentUtterance.onboundary = (event) => {
+    //   if (event.name === 'word' || event.name === 'sentence') {
+    //     const position = event.charIndex || 0;
+    //     this.updateState({ currentPosition: position });
+    //     this.onPositionChange?.(position, text);
+    //     options?.onBoundary?.(position);
+    //   }
+    // };
 
     // Start speaking
     try {
@@ -402,6 +439,7 @@ export class TextToSpeechService {
     this.state = { ...this.state, ...updates };
     this.onStateChange?.(this.state);
   }
+  
 
   private announceToScreenReader(message: string): void {
     if (typeof document === 'undefined') return;
